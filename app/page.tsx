@@ -11,6 +11,11 @@ type Recommendation = {
   score: number;
   wave: number;
   windWave: number;
+  waveDirection: number;
+  wavePeriod: number;
+  swellWave: number;
+  currentVelocity: number;
+  currentDirection: number;
   seaTemp: number;
   catchIndex: number;
   catchLevel: string;
@@ -48,6 +53,11 @@ type Result = {
 };
 
 const examples = ["부산 해운대구", "울산 동구 방어진", "포항시 북구", "여수시 돌산읍"];
+
+function directionName(degree: number) {
+  const names = ["북", "북동", "동", "남동", "남", "남서", "서", "북서"];
+  return names[Math.round((((degree % 360) + 360) % 360) / 45) % 8];
+}
 
 export default function Home() {
   const [seoulTime, setSeoulTime] = useState("");
@@ -137,6 +147,24 @@ export default function Home() {
               <article><span>강수</span><strong>{result.weather.rain.toFixed(1)} <small>mm</small></strong></article>
             </div>
           </section>
+
+          {best && (
+            <section className="ocean-panel">
+              <div className="ocean-title">
+                <div><p className="overline">1순위 해역 · 실시간 바다</p><h2>{best.name} 해양 정보</h2></div>
+                <span>파도는 오는 방향 기준입니더</span>
+              </div>
+              <div className="ocean-metrics">
+                <article className="ocean-main"><span>현재 파고</span><strong>{best.wave.toFixed(1)}m</strong><small>6시간 최고 {best.maxWaveNext6.toFixed(1)}m</small></article>
+                <article><span>파주기</span><strong>{best.wavePeriod.toFixed(1)}초</strong><small>{best.wavePeriod >= 8 ? "긴 너울 주의" : "짧은 파도"}</small></article>
+                <article><span>파향</span><strong>{directionName(best.waveDirection)}</strong><small>{Math.round(best.waveDirection)}°에서 옴</small></article>
+                <article><span>풍랑</span><strong>{best.windWave.toFixed(1)}m</strong><small>너울 {best.swellWave.toFixed(1)}m</small></article>
+                <article><span>표층 수온</span><strong>{best.seaTemp.toFixed(1)}°</strong><small>예상 어종 {best.targetSpecies}</small></article>
+                <article><span>해류</span><strong>{best.currentVelocity.toFixed(1)}km/h</strong><small>{directionName(best.currentDirection)}쪽으로 흐름</small></article>
+              </div>
+              <p className="ocean-caution">※ 해류와 연안 파도는 약 8km 격자 예측값이라 항해용 해도나 조석표를 대신할 수 없습니더.</p>
+            </section>
+          )}
 
           <section className={`safety-center ${result.safety.status}`} aria-live="polite">
             <div className="safety-head">

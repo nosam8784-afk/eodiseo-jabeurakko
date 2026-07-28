@@ -39,6 +39,21 @@ button,input { font:inherit; }
 .weather-strip span { display:block; color:var(--muted); font-size:9px; }
 .weather-strip strong { display:block; margin-top:7px; font-size:25px; letter-spacing:-.05em; }
 .weather-strip small { font-size:9px; }
+.ocean-panel { max-width:1300px; margin:16px auto 0; padding:28px; border-radius:22px; background:linear-gradient(135deg,#073f49,#086b72); color:white; box-shadow:0 18px 50px rgba(7,63,73,.15); }
+.ocean-title { display:flex; justify-content:space-between; align-items:end; margin-bottom:18px; }
+.ocean-title .overline { color:var(--lime); margin-bottom:6px; }
+.ocean-title h2 { margin:0; font-size:27px; letter-spacing:-.05em; }
+.ocean-title>span { color:#9fc5c5; font-size:9px; }
+.ocean-metrics { display:grid; grid-template-columns:1.25fr repeat(5,1fr); gap:7px; }
+.ocean-metrics article { min-width:0; padding:18px 15px; border:1px solid rgba(255,255,255,.11); border-radius:14px; background:rgba(255,255,255,.06); }
+.ocean-metrics article.ocean-main { background:var(--lime); color:var(--deep); }
+.ocean-metrics span,.ocean-metrics small { display:block; }
+.ocean-metrics span { color:#9fc5c5; font-size:9px; font-weight:800; }
+.ocean-main span { color:#486129; }
+.ocean-metrics strong { display:block; margin:13px 0 8px; overflow:hidden; font-size:clamp(19px,2.2vw,31px); letter-spacing:-.06em; text-overflow:ellipsis; white-space:nowrap; }
+.ocean-metrics small { color:#a9cbca; font-size:8px; line-height:1.4; }
+.ocean-main small { color:#4d6330; }
+.ocean-caution { margin:13px 0 0; color:#8eb4b5; font-size:8px; }
 .safety-center { max-width:1300px; margin:16px auto 0; padding:24px; border:2px solid #79ae91; border-radius:22px; background:#eaf5ed; }
 .safety-center.caution { border-color:#e0a53b; background:#fff4d9; }
 .safety-center.danger { border-color:#db5c4c; background:#ffebe6; }
@@ -128,7 +143,8 @@ footer p { margin:0; }
 @media(max-width:850px) {
   .hero,.summary,.result-grid { grid-template-columns:1fr; }
   .hero { gap:35px; padding-top:45px; }
-  .summary,.safety-center,.result-grid,.method { margin-left:16px; margin-right:16px; }
+  .summary,.ocean-panel,.safety-center,.result-grid,.method { margin-left:16px; margin-right:16px; }
+  .ocean-metrics { grid-template-columns:repeat(3,1fr); }
   .safety-head { grid-template-columns:auto 1fr; }
   .safety-peaks { grid-column:1/-1; }
   .warning-list { grid-template-columns:1fr; }
@@ -146,6 +162,8 @@ footer p { margin:0; }
   .summary { padding:22px; }
   .weather-strip { grid-template-columns:repeat(2,1fr); }
   .weather-strip article { border:0; border-top:1px solid var(--line); }
+  .ocean-title { align-items:flex-start; flex-direction:column; gap:8px; }
+  .ocean-metrics { grid-template-columns:repeat(2,1fr); }
   .method { padding:30px 22px; }
   .method>div { grid-template-columns:1fr; }
   footer { flex-direction:column; }

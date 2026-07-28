@@ -84,9 +84,10 @@ export async function GET(request: NextRequest) {
     const url = new URL("https://marine-api.open-meteo.com/v1/marine");
     url.searchParams.set("latitude", point.latitude.toFixed(5));
     url.searchParams.set("longitude", point.longitude.toFixed(5));
-    url.searchParams.set("current", "wave_height,wind_wave_height,sea_surface_temperature");
+    url.searchParams.set("current", "wave_height,wave_direction,wave_period,wind_wave_height,swell_wave_height,sea_surface_temperature,ocean_current_velocity,ocean_current_direction");
     url.searchParams.set("hourly", "wave_height,wind_wave_height");
     url.searchParams.set("forecast_hours", "6");
+    url.searchParams.set("cell_selection", "sea");
     url.searchParams.set("timezone", "Asia/Seoul");
     const response = await fetch(url, { cache: "no-store" });
     if (!response.ok) return null;
@@ -99,6 +100,11 @@ export async function GET(request: NextRequest) {
     const wave = safeNumber(current.wave_height, 9);
     const windWave = safeNumber(current.wind_wave_height, wave);
     const seaTemp = safeNumber(current.sea_surface_temperature, 15);
+    const waveDirection = safeNumber(current.wave_direction);
+    const wavePeriod = safeNumber(current.wave_period);
+    const swellWave = safeNumber(current.swell_wave_height);
+    const currentVelocity = safeNumber(current.ocean_current_velocity);
+    const currentDirection = safeNumber(current.ocean_current_direction);
     const hourlyWaves = (body.hourly?.wave_height || []).map((value) => safeNumber(value)).filter((value) => value >= 0);
     const hourlyWindWaves = (body.hourly?.wind_wave_height || []).map((value) => safeNumber(value)).filter((value) => value >= 0);
     const maxWaveNext6 = Math.max(wave, ...hourlyWaves);
@@ -108,7 +114,11 @@ export async function GET(request: NextRequest) {
     const idealCenter = (point.idealTemp[0] + point.idealTemp[1]) / 2;
     const tempSuitability = Math.max(0, 100 - Math.abs(seaTemp - idealCenter) * 9);
     const catchIndex = Math.round(Math.max(1, Math.min(99, tempSuitability * 0.5 + safety * 0.25 + travel * 0.25)));
-    return { ...point, wave, windWave, seaTemp, maxWaveNext6, maxWindWaveNext6, score: catchIndex, catchIndex };
+    return {
+      ...point, wave, windWave, seaTemp, waveDirection, wavePeriod, swellWave,
+      currentVelocity, currentDirection, maxWaveNext6, maxWindWaveNext6,
+      score: catchIndex, catchIndex,
+    };
   }));
 
   const valid = marineResults.filter((item): item is NonNullable<typeof item> => Boolean(item));
@@ -184,6 +194,11 @@ export async function GET(request: NextRequest) {
     score: item.score,
     wave: item.wave,
     windWave: item.windWave,
+    waveDirection: item.waveDirection,
+    wavePeriod: item.wavePeriod,
+    swellWave: item.swellWave,
+    currentVelocity: item.currentVelocity,
+    currentDirection: item.currentDirection,
     maxWaveNext6: item.maxWaveNext6,
     seaTemp: item.seaTemp,
     catchIndex: item.catchIndex,
