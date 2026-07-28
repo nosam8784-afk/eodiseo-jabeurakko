@@ -17,6 +17,17 @@ type Place = {
   summary: string;
 };
 
+type FishingZone = {
+  name: string;
+  region: string;
+  lat: number;
+  lon: number;
+  wave: number;
+  wind: number;
+  waterTemp: number;
+  target: string;
+};
+
 const places: Place[] = [
   {
     name: "부산",
@@ -85,10 +96,117 @@ const forecast = [
   { time: "19시", icon: "☁", temp: 26, wave: 0.9 },
 ];
 
+const fishingZones: FishingZone[] = [
+  {
+    name: "다대포 외해",
+    region: "부산",
+    lat: 35.02,
+    lon: 128.94,
+    wave: 0.7,
+    wind: 3.2,
+    waterTemp: 24.8,
+    target: "갈치 · 고등어",
+  },
+  {
+    name: "해금강 남동",
+    region: "거제",
+    lat: 34.72,
+    lon: 128.69,
+    wave: 0.9,
+    wind: 3.8,
+    waterTemp: 24.2,
+    target: "볼락 · 참돔",
+  },
+  {
+    name: "한산도 남측",
+    region: "통영",
+    lat: 34.75,
+    lon: 128.51,
+    wave: 0.6,
+    wind: 2.9,
+    waterTemp: 24.5,
+    target: "감성돔 · 전갱이",
+  },
+  {
+    name: "금오도 동측",
+    region: "여수",
+    lat: 34.47,
+    lon: 127.79,
+    wave: 1.0,
+    wind: 4.5,
+    waterTemp: 25.1,
+    target: "문어 · 참돔",
+  },
+  {
+    name: "우도 북동",
+    region: "제주",
+    lat: 33.53,
+    lon: 127.0,
+    wave: 1.4,
+    wind: 5.1,
+    waterTemp: 26.1,
+    target: "방어 · 갈치",
+  },
+  {
+    name: "신진도 서측",
+    region: "태안",
+    lat: 36.66,
+    lon: 126.1,
+    wave: 1.1,
+    wind: 4.2,
+    waterTemp: 22.9,
+    target: "우럭 · 주꾸미",
+  },
+  {
+    name: "주문진 동측",
+    region: "강릉",
+    lat: 37.91,
+    lon: 128.86,
+    wave: 0.9,
+    wind: 3.5,
+    waterTemp: 22.6,
+    target: "대구 · 가자미",
+  },
+  {
+    name: "자월도 남측",
+    region: "인천",
+    lat: 37.23,
+    lon: 126.31,
+    wave: 1.0,
+    wind: 4.1,
+    waterTemp: 23.1,
+    target: "꽃게 · 우럭",
+  },
+];
+
+function distanceKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+) {
+  const radius = 6371;
+  const toRad = (value: number) => (value * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) ** 2;
+  return radius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 export default function Home() {
   const [selectedName, setSelectedName] = useState("부산");
   const [mode, setMode] = useState<"weather" | "ocean">("weather");
   const [seoulTime, setSeoulTime] = useState("");
+  const [coordinates, setCoordinates] = useState<{
+    lat: number;
+    lon: number;
+  } | null>(null);
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState("");
   const selected = useMemo(
     () => places.find((place) => place.name === selectedName) ?? places[0],
     [selectedName],
@@ -111,6 +229,56 @@ export default function Home() {
     const timer = window.setInterval(updateClock, 1000);
     return () => window.clearInterval(timer);
   }, []);
+
+  const recommendations = useMemo(() => {
+    if (!coordinates) return [];
+    return fishingZones
+      .map((zone) => {
+        const distance = distanceKm(
+          coordinates.lat,
+          coordinates.lon,
+          zone.lat,
+          zone.lon,
+        );
+        const conditionScore =
+          100 -
+          zone.wave * 12 -
+          zone.wind * 2 -
+          Math.abs(zone.waterTemp - 24) * 1.5;
+        const efficiency = Math.max(
+          1,
+          Math.min(99, Math.round(conditionScore - Math.min(distance / 12, 30))),
+        );
+        return { ...zone, distance, efficiency };
+      })
+      .sort((a, b) => b.efficiency - a.efficiency)
+      .slice(0, 3);
+  }, [coordinates]);
+
+  const findFishingZones = () => {
+    if (!navigator.geolocation) {
+      setLocationError("이 기기에서는 GPS 위치 확인을 지원하지 않습니다.");
+      return;
+    }
+    setLocating(true);
+    setLocationError("");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setCoordinates({
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+        });
+        setLocating(false);
+      },
+      () => {
+        setLocationError(
+          "위치 확인이 허용되지 않았습니다. 브라우저에서 위치 권한을 허용해 주세요.",
+        );
+        setLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 300000 },
+    );
+  };
 
   return (
     <main>
@@ -297,8 +465,136 @@ export default function Home() {
         <span>안전한 하루 보내세요</span>
       </section>
 
+      <section className="fishing-section" aria-labelledby="fishing-title">
+        <div className="fishing-intro">
+          <p className="eyebrow">SMART FISHING GUIDE</p>
+          <h2 id="fishing-title">
+            지금 위치에서
+            <br />
+            어디로 갈까?
+          </h2>
+          <p>
+            GPS 위치와 파고·풍속·수온·이동거리를 함께 계산해 가까운 조업
+            후보지를 순서대로 보여드립니다.
+          </p>
+          <button
+            className="gps-button"
+            type="button"
+            onClick={findFishingZones}
+            disabled={locating}
+          >
+            <span>⌖</span>
+            {locating ? "현재 위치 확인 중…" : "내 GPS로 추천받기"}
+          </button>
+          {coordinates && (
+            <p className="coordinate-readout">
+              현재 위치 {coordinates.lat.toFixed(4)},{" "}
+              {coordinates.lon.toFixed(4)}
+            </p>
+          )}
+          {locationError && <p className="location-error">{locationError}</p>}
+        </div>
+
+        <div className="fishing-results">
+          <div className="google-map-card">
+            <iframe
+              title="구글 지도에서 보는 부산 다대포 앞바다 추천 조업 후보지"
+              src="https://www.google.com/maps?q=35.0200,128.9400&z=11&output=embed"
+              loading="lazy"
+              allowFullScreen
+              referrerPolicy="strict-origin-when-cross-origin"
+            />
+            <div className="map-focus-label">
+              <span className="map-pulse" aria-hidden="true" />
+              <div>
+                <small>부산 앞바다 집중 표시</small>
+                <strong>다대포 외해</strong>
+                <p>35.0200° N · 128.9400° E</p>
+              </div>
+            </div>
+            <a
+              className="open-google-map"
+              href="https://www.google.com/maps?q=35.0200,128.9400"
+              target="_blank"
+              rel="noreferrer"
+            >
+              구글 지도에서 크게 보기 ↗
+            </a>
+          </div>
+          {recommendations.length > 0 ? (
+            <>
+              <div className="best-zone">
+                <div className="sonar" aria-hidden="true">
+                  <i />
+                  <span className="boat-dot">◆</span>
+                  <span className="target-dot">●</span>
+                </div>
+                <div className="best-zone-copy">
+                  <span className="rank-badge">추천 1순위</span>
+                  <p>{recommendations[0].region}</p>
+                  <h3>{recommendations[0].name}</h3>
+                  <div className="score-row">
+                    <strong>{recommendations[0].efficiency}</strong>
+                    <span>/ 100 조업 효율 점수</span>
+                  </div>
+                  <p className="zone-coordinates">
+                    GPS {recommendations[0].lat.toFixed(3)},{" "}
+                    {recommendations[0].lon.toFixed(3)}
+                  </p>
+                </div>
+              </div>
+              <div className="zone-list">
+                {recommendations.map((zone, index) => (
+                  <article key={zone.name}>
+                    <span className="zone-rank">0{index + 1}</span>
+                    <div>
+                      <strong>{zone.name}</strong>
+                      <small>
+                        {zone.target} · 약 {Math.round(zone.distance)}km
+                      </small>
+                    </div>
+                    <dl>
+                      <div>
+                        <dt>파고</dt>
+                        <dd>{zone.wave}m</dd>
+                      </div>
+                      <div>
+                        <dt>풍속</dt>
+                        <dd>{zone.wind}m/s</dd>
+                      </div>
+                      <div>
+                        <dt>수온</dt>
+                        <dd>{zone.waterTemp}°</dd>
+                      </div>
+                    </dl>
+                    <span className="mini-score">{zone.efficiency}점</span>
+                  </article>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="gps-placeholder">
+              <div>
+                <span className="gps-mini-icon">⌖</span>
+              </div>
+              <div>
+                <h3>GPS를 켜면 현재 위치 기준 순위가 나타납니다</h3>
+                <p>위치는 추천 계산에만 사용되며 저장하지 않습니다.</p>
+              </div>
+            </div>
+          )}
+        </div>
+        <p className="safety-note">
+          ※ 현재는 예시 관측값을 사용한 후보지 안내입니다. 출항 전 반드시
+          기상특보, 항행경보, 현지 조업 규정과 선박 안전 상태를 직접 확인하세요.
+        </p>
+      </section>
+
       <footer>
-        <p>데이터 출처 예정: 기상청 API허브 · 국립해양조사원 공공데이터</p>
+        <p>
+          데이터 출처 예정: 기상청 API허브 · 국립해양조사원 ·
+          국립수산과학원
+        </p>
         <p>현재 화면의 수치는 기능 확인을 위한 예시입니다.</p>
       </footer>
     </main>
