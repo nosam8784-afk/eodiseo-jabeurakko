@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import RecommendationMap from "./RecommendationMap";
 
 type Recommendation = {
   name: string;
@@ -74,10 +75,6 @@ export default function Home() {
   }
 
   const best = result?.recommendations[0];
-  const mapUrl = best
-    ? `https://www.openstreetmap.org/export/embed.html?bbox=${best.lon - 0.09}%2C${best.lat - 0.06}%2C${best.lon + 0.09}%2C${best.lat + 0.06}&layer=mapnik&marker=${best.lat}%2C${best.lon}`
-    : "";
-
   return (
     <main>
       <header className="topbar">
@@ -126,8 +123,11 @@ export default function Home() {
 
           <section className="result-grid">
             <article className="map-card">
-              <iframe title="추천 조업지 지도" src={mapUrl} loading="lazy" />
-              <div className="map-label"><span>1순위 추천</span><strong>{best?.name}</strong><small>{best?.lat.toFixed(4)}, {best?.lon.toFixed(4)}</small></div>
+              <RecommendationMap
+                departure={{ lat: result.lat, lon: result.lon, label: result.address }}
+                zones={result.recommendations}
+              />
+              <div className="map-label"><span>지도에 표시된 1순위</span><strong>{best?.name}</strong><small>밝은 연두색 원을 눌러 상세정보 확인</small></div>
             </article>
             <div className="ranking">
               <div className="section-title"><div><p className="overline">실시간 재계산 결과</p><h2>추천 조업지</h2></div><span>{result.calculatedAt} 기준</span></div>
