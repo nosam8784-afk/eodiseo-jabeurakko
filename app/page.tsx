@@ -28,6 +28,13 @@ type FishingZone = {
   target: string;
 };
 
+type AddressPoint = {
+  label: string;
+  keywords: string[];
+  lat: number;
+  lon: number;
+};
+
 const places: Place[] = [
   {
     name: "부산",
@@ -179,6 +186,34 @@ const fishingZones: FishingZone[] = [
   },
 ];
 
+const addressPoints: AddressPoint[] = [
+  { label: "부산 중구", keywords: ["부산광역시 중구", "부산 중구"], lat: 35.106, lon: 129.032 },
+  { label: "부산 서구", keywords: ["부산광역시 서구", "부산 서구"], lat: 35.097, lon: 129.024 },
+  { label: "부산 동구", keywords: ["부산광역시 동구", "부산 동구"], lat: 35.129, lon: 129.045 },
+  { label: "부산 영도구", keywords: ["영도구", "부산 영도"], lat: 35.091, lon: 129.068 },
+  { label: "부산 부산진구", keywords: ["부산진구", "부산진"], lat: 35.163, lon: 129.053 },
+  { label: "부산 동래구", keywords: ["동래구", "부산 동래"], lat: 35.205, lon: 129.083 },
+  { label: "부산 남구", keywords: ["부산광역시 남구", "부산 남구"], lat: 35.136, lon: 129.084 },
+  { label: "부산 북구", keywords: ["부산광역시 북구", "부산 북구"], lat: 35.197, lon: 128.99 },
+  { label: "부산 해운대구", keywords: ["해운대구", "해운대"], lat: 35.163, lon: 129.163 },
+  { label: "부산 사하구", keywords: ["사하구", "다대포"], lat: 35.104, lon: 128.974 },
+  { label: "부산 금정구", keywords: ["금정구"], lat: 35.243, lon: 129.092 },
+  { label: "부산 강서구", keywords: ["부산광역시 강서구", "부산 강서구", "가덕도"], lat: 35.116, lon: 128.88 },
+  { label: "부산 연제구", keywords: ["연제구"], lat: 35.177, lon: 129.079 },
+  { label: "부산 수영구", keywords: ["수영구", "광안리"], lat: 35.145, lon: 129.113 },
+  { label: "부산 사상구", keywords: ["사상구"], lat: 35.152, lon: 128.991 },
+  { label: "부산 기장군", keywords: ["기장군", "부산 기장"], lat: 35.244, lon: 129.222 },
+  { label: "부산광역시", keywords: ["부산광역시", "부산"], lat: 35.1796, lon: 129.0756 },
+  { label: "거제시", keywords: ["거제시", "거제"], lat: 34.88, lon: 128.621 },
+  { label: "통영시", keywords: ["통영시", "통영"], lat: 34.854, lon: 128.433 },
+  { label: "여수시", keywords: ["여수시", "여수"], lat: 34.76, lon: 127.662 },
+  { label: "인천광역시", keywords: ["인천광역시", "인천"], lat: 37.456, lon: 126.705 },
+  { label: "강릉시", keywords: ["강릉시", "강릉"], lat: 37.752, lon: 128.876 },
+  { label: "태안군", keywords: ["태안군", "태안"], lat: 36.745, lon: 126.298 },
+  { label: "제주시", keywords: ["제주시", "제주"], lat: 33.5, lon: 126.531 },
+  { label: "서울특별시", keywords: ["서울특별시", "서울"], lat: 37.5665, lon: 126.978 },
+];
+
 function distanceKm(
   lat1: number,
   lon1: number,
@@ -205,8 +240,9 @@ export default function Home() {
     lat: number;
     lon: number;
   } | null>(null);
-  const [locating, setLocating] = useState(false);
-  const [locationError, setLocationError] = useState("");
+  const [address, setAddress] = useState("");
+  const [matchedAddress, setMatchedAddress] = useState("");
+  const [addressError, setAddressError] = useState("");
   const selected = useMemo(
     () => places.find((place) => place.name === selectedName) ?? places[0],
     [selectedName],
@@ -255,30 +291,30 @@ export default function Home() {
       .slice(0, 3);
   }, [coordinates]);
 
-  const findFishingZones = () => {
-    if (!navigator.geolocation) {
-      setLocationError("이 기기에서는 GPS 위치 확인을 지원하지 않습니다.");
+  const findFishingZones = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = address.trim().replace(/\s+/g, " ");
+    if (!query) {
+      setAddressError("출발할 주소를 한글로 입력해 주세요.");
       return;
     }
-    setLocating(true);
-    setLocationError("");
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setCoordinates({
-          lat: position.coords.latitude,
-          lon: position.coords.longitude,
-        });
-        setLocating(false);
-      },
-      () => {
-        setLocationError(
-          "위치 확인이 허용되지 않았습니다. 브라우저에서 위치 권한을 허용해 주세요.",
-        );
-        setLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 300000 },
+    const match = addressPoints.find((point) =>
+      point.keywords.some((keyword) => query.includes(keyword)),
     );
+    if (!match) {
+      setCoordinates(null);
+      setMatchedAddress("");
+      setAddressError(
+        "주소에서 지역을 찾지 못했습니다. ‘부산광역시 해운대구’처럼 시·군·구를 포함해 주세요.",
+      );
+      return;
+    }
+    setCoordinates({ lat: match.lat, lon: match.lon });
+    setMatchedAddress(match.label);
+    setAddressError("");
   };
+
+  const mapZone = recommendations[0] ?? fishingZones[0];
 
   return (
     <main>
@@ -474,32 +510,40 @@ export default function Home() {
             어디로 갈까?
           </h2>
           <p>
-            GPS 위치와 파고·풍속·수온·이동거리를 함께 계산해 가까운 조업
+            입력한 주소와 파고·풍속·수온·이동거리를 함께 계산해 가까운 조업
             후보지를 순서대로 보여드립니다.
           </p>
-          <button
-            className="gps-button"
-            type="button"
-            onClick={findFishingZones}
-            disabled={locating}
-          >
-            <span>⌖</span>
-            {locating ? "현재 위치 확인 중…" : "내 GPS로 추천받기"}
-          </button>
+          <form className="address-form" onSubmit={findFishingZones}>
+            <label htmlFor="departure-address">출발 주소</label>
+            <div className="address-control">
+              <input
+                id="departure-address"
+                type="text"
+                value={address}
+                onChange={(event) => setAddress(event.target.value)}
+                placeholder="예: 부산광역시 해운대구 우동"
+                autoComplete="street-address"
+              />
+              <button type="submit">추천 계산</button>
+            </div>
+          </form>
+          <p className="address-example">
+            입력 예시 · 부산광역시 사하구 / 거제시 / 통영시
+          </p>
           {coordinates && (
             <p className="coordinate-readout">
-              현재 위치 {coordinates.lat.toFixed(4)},{" "}
+              {matchedAddress} 기준 · {coordinates.lat.toFixed(4)},{" "}
               {coordinates.lon.toFixed(4)}
             </p>
           )}
-          {locationError && <p className="location-error">{locationError}</p>}
+          {addressError && <p className="location-error">{addressError}</p>}
         </div>
 
         <div className="fishing-results">
           <div className="google-map-card">
             <iframe
-              title="구글 지도에서 보는 부산 다대포 앞바다 추천 조업 후보지"
-              src="https://www.google.com/maps?q=35.0200,128.9400&z=11&output=embed"
+              title={`구글 지도에서 보는 ${mapZone.name} 추천 조업 후보지`}
+              src={`https://www.google.com/maps?q=${mapZone.lat},${mapZone.lon}&z=11&output=embed`}
               loading="lazy"
               allowFullScreen
               referrerPolicy="strict-origin-when-cross-origin"
@@ -508,13 +552,15 @@ export default function Home() {
               <span className="map-pulse" aria-hidden="true" />
               <div>
                 <small>부산 앞바다 집중 표시</small>
-                <strong>다대포 외해</strong>
-                <p>35.0200° N · 128.9400° E</p>
+                <strong>{mapZone.name}</strong>
+                <p>
+                  {mapZone.lat.toFixed(4)}° N · {mapZone.lon.toFixed(4)}° E
+                </p>
               </div>
             </div>
             <a
               className="open-google-map"
-              href="https://www.google.com/maps?q=35.0200,128.9400"
+              href={`https://www.google.com/maps?q=${mapZone.lat},${mapZone.lon}`}
               target="_blank"
               rel="noreferrer"
             >
@@ -575,11 +621,11 @@ export default function Home() {
           ) : (
             <div className="gps-placeholder">
               <div>
-                <span className="gps-mini-icon">⌖</span>
+                <span className="gps-mini-icon">가</span>
               </div>
               <div>
-                <h3>GPS를 켜면 현재 위치 기준 순위가 나타납니다</h3>
-                <p>위치는 추천 계산에만 사용되며 저장하지 않습니다.</p>
+                <h3>주소를 입력하면 출발지 기준 순위가 나타납니다</h3>
+                <p>입력한 주소는 계산에만 사용되며 저장하지 않습니다.</p>
               </div>
             </div>
           )}
