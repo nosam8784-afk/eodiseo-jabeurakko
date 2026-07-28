@@ -10,6 +10,9 @@ type Zone = {
   score: number;
   wave: number;
   seaTemp: number;
+  catchIndex: number;
+  catchLevel: string;
+  targetSpecies: string;
 };
 
 type Props = {
@@ -121,7 +124,7 @@ export default function RecommendationMap({ departure, zones }: Props) {
           const marker = L.marker([zone.lat, zone.lon], { icon })
             .addTo(map)
             .bindPopup(
-              `<div class="map-popup"><em>${index + 1}순위 추천 해역</em><strong>${zone.name}</strong><span>파고 ${zone.wave.toFixed(1)}m · 수온 ${zone.seaTemp.toFixed(1)}°C</span><span>이동거리 ${zone.distance.toFixed(1)}km · 종합 ${zone.score}점</span></div>`,
+              `<div class="map-popup"><em>${index + 1}순위 · 어획 기대 ${zone.catchLevel}</em><strong>${zone.name}</strong><span>예상 어종 ${zone.targetSpecies}</span><span>파고 ${zone.wave.toFixed(1)}m · 수온 ${zone.seaTemp.toFixed(1)}°C</span><span>이동거리 ${zone.distance.toFixed(1)}km · 기대도 ${zone.catchIndex}점</span></div>`,
               { offset: [0, -18] },
             );
           if (index === 0) marker.openPopup?.();
@@ -149,7 +152,7 @@ export default function RecommendationMap({ departure, zones }: Props) {
         <span><i className="legend-other" />2·3순위</span>
       </div>
       <div className="interactive-map" ref={elementRef} aria-label="출발지와 추천 해역 지도" />
-      {mapError && <p className="map-error">{mapError}</p>}
+      {mapError && <p className="map-error">지도가 잠깐 삐끗했네예. 새로고침 한 번 해보이소.</p>}
     </div>
   );
 }

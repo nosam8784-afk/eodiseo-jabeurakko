@@ -1,26 +1,54 @@
 import { NextRequest, NextResponse } from "next/server";
 
-type MarinePoint = {
+type FishingGround = {
+  name: string;
   latitude: number;
   longitude: number;
-  distance: number;
-  direction: string;
+  species: string[];
+  idealTemp: [number, number];
 };
 
-const directions = [
-  ["동쪽", 90], ["남동쪽", 135], ["남쪽", 180], ["남서쪽", 225],
-  ["서쪽", 270], ["북서쪽", 315], ["북쪽", 0], ["북동쪽", 45],
-] as const;
+// 육지 후보가 섞이지 않도록 연안에서 충분히 떨어진 실제 해상 좌표만 사용합니다.
+const fishingGrounds: FishingGround[] = [
+  { name: "가덕도 남방 해역", latitude: 34.94, longitude: 128.96, species: ["갈치", "고등어"], idealTemp: [18, 25] },
+  { name: "오륙도 동방 해역", latitude: 35.08, longitude: 129.23, species: ["고등어", "전갱이"], idealTemp: [17, 24] },
+  { name: "기장 대변항 동방 해역", latitude: 35.22, longitude: 129.38, species: ["참돔", "전갱이"], idealTemp: [16, 23] },
+  { name: "울산 간절곶 동방 해역", latitude: 35.35, longitude: 129.52, species: ["참돔", "부시리"], idealTemp: [17, 24] },
+  { name: "울산 방어진 동방 해역", latitude: 35.48, longitude: 129.60, species: ["고등어", "오징어"], idealTemp: [16, 23] },
+  { name: "울산 정자 외해", latitude: 35.63, longitude: 129.58, species: ["가자미", "오징어"], idealTemp: [14, 21] },
+  { name: "포항 구룡포 동방 해역", latitude: 35.98, longitude: 129.67, species: ["오징어", "대구"], idealTemp: [13, 20] },
+  { name: "포항 영일만 외해", latitude: 36.12, longitude: 129.62, species: ["청어", "오징어"], idealTemp: [12, 20] },
+  { name: "영덕 축산항 동방 해역", latitude: 36.50, longitude: 129.62, species: ["대게", "가자미"], idealTemp: [8, 17] },
+  { name: "울진 후포 동방 해역", latitude: 36.70, longitude: 129.73, species: ["대게", "대구"], idealTemp: [7, 16] },
+  { name: "삼척 임원 동방 해역", latitude: 37.23, longitude: 129.48, species: ["가자미", "대구"], idealTemp: [8, 17] },
+  { name: "강릉 주문진 외해", latitude: 37.90, longitude: 129.20, species: ["오징어", "대구"], idealTemp: [10, 19] },
+  { name: "속초 대포항 동방 해역", latitude: 38.17, longitude: 129.20, species: ["오징어", "가자미"], idealTemp: [10, 19] },
+  { name: "거제 지심도 남동 해역", latitude: 34.76, longitude: 128.85, species: ["참돔", "부시리"], idealTemp: [17, 24] },
+  { name: "거제 매물도 남방 해역", latitude: 34.58, longitude: 128.58, species: ["방어", "참돔"], idealTemp: [16, 23] },
+  { name: "통영 욕지도 남방 해역", latitude: 34.50, longitude: 128.25, species: ["갈치", "참돔"], idealTemp: [18, 25] },
+  { name: "남해 미조 남방 해역", latitude: 34.55, longitude: 128.05, species: ["갈치", "볼락"], idealTemp: [17, 24] },
+  { name: "여수 금오도 남방 해역", latitude: 34.43, longitude: 127.77, species: ["갈치", "참돔"], idealTemp: [18, 25] },
+  { name: "고흥 나로도 남동 해역", latitude: 34.38, longitude: 127.60, species: ["삼치", "참돔"], idealTemp: [18, 25] },
+  { name: "완도 청산도 남방 해역", latitude: 34.08, longitude: 126.93, species: ["전갱이", "참돔"], idealTemp: [17, 24] },
+  { name: "진도 조도 남방 해역", latitude: 33.97, longitude: 126.20, species: ["갈치", "농어"], idealTemp: [18, 25] },
+  { name: "목포 외달도 서방 해역", latitude: 34.68, longitude: 126.16, species: ["민어", "농어"], idealTemp: [19, 26] },
+  { name: "군산 어청도 남방 해역", latitude: 35.95, longitude: 125.98, species: ["우럭", "광어"], idealTemp: [14, 22] },
+  { name: "보령 외연도 남방 해역", latitude: 36.12, longitude: 125.95, species: ["우럭", "광어"], idealTemp: [14, 22] },
+  { name: "태안 격렬비열도 남방 해역", latitude: 36.52, longitude: 125.52, species: ["우럭", "농어"], idealTemp: [15, 23] },
+  { name: "인천 덕적도 서방 해역", latitude: 37.20, longitude: 125.78, species: ["꽃게", "우럭"], idealTemp: [14, 23] },
+  { name: "인천 연평도 남방 해역", latitude: 37.53, longitude: 125.70, species: ["꽃게", "조기"], idealTemp: [15, 24] },
+  { name: "제주 차귀도 서방 해역", latitude: 33.30, longitude: 125.95, species: ["방어", "갈치"], idealTemp: [18, 25] },
+  { name: "제주 마라도 남방 해역", latitude: 32.93, longitude: 126.23, species: ["방어", "다금바리"], idealTemp: [18, 25] },
+  { name: "제주 서귀포 남방 해역", latitude: 33.12, longitude: 126.56, species: ["갈치", "참돔"], idealTemp: [19, 26] },
+  { name: "제주 성산 동방 해역", latitude: 33.43, longitude: 127.18, species: ["갈치", "방어"], idealTemp: [18, 25] },
+];
 
-function destination(lat: number, lon: number, distance: number, bearing: number): MarinePoint {
-  const radius = 6371;
-  const d = distance / radius;
-  const b = bearing * Math.PI / 180;
-  const p1 = lat * Math.PI / 180;
-  const l1 = lon * Math.PI / 180;
-  const p2 = Math.asin(Math.sin(p1) * Math.cos(d) + Math.cos(p1) * Math.sin(d) * Math.cos(b));
-  const l2 = l1 + Math.atan2(Math.sin(b) * Math.sin(d) * Math.cos(p1), Math.cos(d) - Math.sin(p1) * Math.sin(p2));
-  return { latitude: p2 * 180 / Math.PI, longitude: l2 * 180 / Math.PI, distance, direction: "" };
+function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const toRad = (value: number) => value * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 function safeNumber(value: unknown, fallback = 0) {
@@ -47,15 +75,10 @@ export async function GET(request: NextRequest) {
 
   const lat = Number(geo[0].lat);
   const lon = Number(geo[0].lon);
-  const candidateDistances = [6, 12, 22, 38];
-  const candidates: MarinePoint[] = [];
-  for (const distance of candidateDistances) {
-    for (const [direction, bearing] of directions) {
-      const point = destination(lat, lon, distance, bearing);
-      point.direction = direction;
-      candidates.push(point);
-    }
-  }
+  const candidates = fishingGrounds
+    .map((ground) => ({ ...ground, distance: distanceKm(lat, lon, ground.latitude, ground.longitude) }))
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, 5);
 
   const marineResults = await Promise.all(candidates.map(async (point) => {
     const url = new URL("https://marine-api.open-meteo.com/v1/marine");
@@ -72,16 +95,16 @@ export async function GET(request: NextRequest) {
     const windWave = safeNumber(current.wind_wave_height, wave);
     const seaTemp = safeNumber(current.sea_surface_temperature, 15);
     const safety = Math.max(0, 100 - wave * 30 - windWave * 12);
-    const travel = Math.max(0, 100 - point.distance * 1.6);
-    const temp = Math.max(0, 100 - Math.abs(seaTemp - 20) * 5);
-    const score = Math.round(Math.max(1, Math.min(99, safety * 0.65 + travel * 0.25 + temp * 0.1)));
-    return { ...point, wave, windWave, seaTemp, score };
+    const travel = Math.max(0, 100 - point.distance * 1.2);
+    const idealCenter = (point.idealTemp[0] + point.idealTemp[1]) / 2;
+    const tempSuitability = Math.max(0, 100 - Math.abs(seaTemp - idealCenter) * 9);
+    const catchIndex = Math.round(Math.max(1, Math.min(99, tempSuitability * 0.5 + safety * 0.25 + travel * 0.25)));
+    return { ...point, wave, windWave, seaTemp, score: catchIndex, catchIndex };
   }));
 
   const valid = marineResults.filter((item): item is NonNullable<typeof item> => Boolean(item));
   const unique = valid
     .sort((a, b) => b.score - a.score || a.distance - b.distance)
-    .filter((item, index, all) => all.findIndex((other) => Math.abs(other.latitude - item.latitude) < 0.02 && Math.abs(other.longitude - item.longitude) < 0.02) === index)
     .slice(0, 3);
 
   if (!unique.length) return NextResponse.json({ error: "입력한 위치 주변에서 해양 관측값을 찾지 못했습니다. 해안과 가까운 주소를 입력해 주세요." }, { status: 422 });
@@ -133,9 +156,8 @@ export async function GET(request: NextRequest) {
     weatherSource = "MET Norway 실시간 기상 · Open-Meteo 실시간 해양";
   }
 
-  const placeBase = geo[0].display_name.split(",").slice(0, 2).join(" ");
-  const recommendations = unique.map((item, index) => ({
-    name: `${placeBase} ${item.direction} 해역 ${index + 1}`,
+  const recommendations = unique.map((item) => ({
+    name: item.name,
     lat: item.latitude,
     lon: item.longitude,
     distance: item.distance,
@@ -143,7 +165,10 @@ export async function GET(request: NextRequest) {
     wave: item.wave,
     windWave: item.windWave,
     seaTemp: item.seaTemp,
-    reason: item.wave < 1 ? "낮은 파고와 이동 효율이 좋습니다" : item.wave < 1.8 ? "이동거리와 해상 상태가 균형적입니다" : "주의가 필요한 파고입니다",
+    catchIndex: item.catchIndex,
+    catchLevel: item.catchIndex >= 85 ? "매우 높음" : item.catchIndex >= 72 ? "높음" : "보통",
+    targetSpecies: item.species.join(" · "),
+    reason: `${item.species.join("·")} 수온 적합도와 현재 해상 상태를 반영했습니다`,
   }));
 
   return NextResponse.json({
