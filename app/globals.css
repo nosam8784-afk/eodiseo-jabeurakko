@@ -894,6 +894,22 @@ button {
   font-size: 10px;
 }
 
+.score-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 7px;
+}
+
+.score-breakdown span {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 99px;
+  color: #d4e3df;
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+  padding: 5px 7px;
+}
+
 .best-zone-copy .zone-coordinates {
   font-variant-numeric: tabular-nums;
   margin-top: 2px;

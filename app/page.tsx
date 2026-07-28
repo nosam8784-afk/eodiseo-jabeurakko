@@ -207,11 +207,29 @@ const addressPoints: AddressPoint[] = [
   { label: "거제시", keywords: ["거제시", "거제"], lat: 34.88, lon: 128.621 },
   { label: "통영시", keywords: ["통영시", "통영"], lat: 34.854, lon: 128.433 },
   { label: "여수시", keywords: ["여수시", "여수"], lat: 34.76, lon: 127.662 },
+  { label: "남해군", keywords: ["남해군", "경남 남해"], lat: 34.837, lon: 127.892 },
+  { label: "고흥군", keywords: ["고흥군", "고흥"], lat: 34.612, lon: 127.285 },
+  { label: "완도군", keywords: ["완도군", "완도"], lat: 34.311, lon: 126.755 },
+  { label: "목포시", keywords: ["목포시", "목포"], lat: 34.811, lon: 126.392 },
+  { label: "군산시", keywords: ["군산시", "군산"], lat: 35.968, lon: 126.737 },
+  { label: "보령시", keywords: ["보령시", "보령"], lat: 36.333, lon: 126.613 },
+  { label: "서산시", keywords: ["서산시", "서산"], lat: 36.785, lon: 126.45 },
   { label: "인천광역시", keywords: ["인천광역시", "인천"], lat: 37.456, lon: 126.705 },
   { label: "강릉시", keywords: ["강릉시", "강릉"], lat: 37.752, lon: 128.876 },
+  { label: "속초시", keywords: ["속초시", "속초"], lat: 38.207, lon: 128.592 },
+  { label: "동해시", keywords: ["동해시", "강원 동해"], lat: 37.524, lon: 129.114 },
+  { label: "삼척시", keywords: ["삼척시", "삼척"], lat: 37.45, lon: 129.165 },
+  { label: "울진군", keywords: ["울진군", "울진"], lat: 36.993, lon: 129.4 },
+  { label: "영덕군", keywords: ["영덕군", "영덕"], lat: 36.415, lon: 129.366 },
+  { label: "포항시", keywords: ["포항시", "포항"], lat: 36.019, lon: 129.343 },
+  { label: "울산광역시", keywords: ["울산광역시", "울산"], lat: 35.539, lon: 129.311 },
+  { label: "창원시", keywords: ["창원시", "창원", "진해구"], lat: 35.159, lon: 128.66 },
   { label: "태안군", keywords: ["태안군", "태안"], lat: 36.745, lon: 126.298 },
   { label: "제주시", keywords: ["제주시", "제주"], lat: 33.5, lon: 126.531 },
   { label: "서울특별시", keywords: ["서울특별시", "서울"], lat: 37.5665, lon: 126.978 },
+  { label: "대전광역시", keywords: ["대전광역시", "대전"], lat: 36.35, lon: 127.385 },
+  { label: "대구광역시", keywords: ["대구광역시", "대구"], lat: 35.872, lon: 128.602 },
+  { label: "광주광역시", keywords: ["광주광역시", "광주"], lat: 35.16, lon: 126.852 },
 ];
 
 function distanceKm(
@@ -243,6 +261,7 @@ export default function Home() {
   const [address, setAddress] = useState("");
   const [matchedAddress, setMatchedAddress] = useState("");
   const [addressError, setAddressError] = useState("");
+  const [calculationTime, setCalculationTime] = useState("");
   const selected = useMemo(
     () => places.find((place) => place.name === selectedName) ?? places[0],
     [selectedName],
@@ -276,18 +295,36 @@ export default function Home() {
           zone.lat,
           zone.lon,
         );
-        const conditionScore =
-          100 -
-          zone.wave * 12 -
-          zone.wind * 2 -
-          Math.abs(zone.waterTemp - 24) * 1.5;
+        const travelScore = Math.max(0, 100 - distance * 0.45);
+        const safetyScore = Math.max(
+          0,
+          100 - zone.wave * 28 - zone.wind * 4,
+        );
+        const waterScore = Math.max(
+          0,
+          100 - Math.abs(zone.waterTemp - 24) * 12,
+        );
         const efficiency = Math.max(
           1,
-          Math.min(99, Math.round(conditionScore - Math.min(distance / 12, 30))),
+          Math.min(
+            99,
+            Math.round(
+              travelScore * 0.4 + safetyScore * 0.4 + waterScore * 0.2,
+            ),
+          ),
         );
-        return { ...zone, distance, efficiency };
+        return {
+          ...zone,
+          distance,
+          efficiency,
+          travelScore: Math.round(travelScore),
+          safetyScore: Math.round(safetyScore),
+          waterScore: Math.round(waterScore),
+        };
       })
-      .sort((a, b) => b.efficiency - a.efficiency)
+      .sort(
+        (a, b) => b.efficiency - a.efficiency || a.distance - b.distance,
+      )
       .slice(0, 3);
   }, [coordinates]);
 
@@ -311,6 +348,15 @@ export default function Home() {
     }
     setCoordinates({ lat: match.lat, lon: match.lon });
     setMatchedAddress(match.label);
+    setCalculationTime(
+      new Intl.DateTimeFormat("ko-KR", {
+        timeZone: "Asia/Seoul",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }).format(new Date()),
+    );
     setAddressError("");
   };
 
@@ -510,8 +556,8 @@ export default function Home() {
             어디로 갈까?
           </h2>
           <p>
-            입력한 주소와 파고·풍속·수온·이동거리를 함께 계산해 가까운 조업
-            후보지를 순서대로 보여드립니다.
+            입력한 주소의 위치를 기준으로 후보지별 이동거리와 파고·풍속·수온을
+            새로 계산해 종합 추천 순위를 보여드립니다.
           </p>
           <form className="address-form" onSubmit={findFishingZones}>
             <label htmlFor="departure-address">출발 주소</label>
@@ -528,12 +574,12 @@ export default function Home() {
             </div>
           </form>
           <p className="address-example">
-            입력 예시 · 부산광역시 사하구 / 거제시 / 통영시
+            입력 예시 · 부산광역시 사하구 / 서울특별시 강남구 / 제주시
           </p>
           {coordinates && (
             <p className="coordinate-readout">
               {matchedAddress} 기준 · {coordinates.lat.toFixed(4)},{" "}
-              {coordinates.lon.toFixed(4)}
+              {coordinates.lon.toFixed(4)} · {calculationTime} 재계산
             </p>
           )}
           {addressError && <p className="location-error">{addressError}</p>}
@@ -551,7 +597,7 @@ export default function Home() {
             <div className="map-focus-label">
               <span className="map-pulse" aria-hidden="true" />
               <div>
-                <small>부산 앞바다 집중 표시</small>
+                <small>주소 기준 추천 1순위</small>
                 <strong>{mapZone.name}</strong>
                 <p>
                   {mapZone.lat.toFixed(4)}° N · {mapZone.lon.toFixed(4)}° E
@@ -581,7 +627,12 @@ export default function Home() {
                   <h3>{recommendations[0].name}</h3>
                   <div className="score-row">
                     <strong>{recommendations[0].efficiency}</strong>
-                    <span>/ 100 조업 효율 점수</span>
+                    <span>/ 100 종합 추천 점수</span>
+                  </div>
+                  <div className="score-breakdown">
+                    <span>이동 {recommendations[0].travelScore}</span>
+                    <span>해상안전 {recommendations[0].safetyScore}</span>
+                    <span>수온적합 {recommendations[0].waterScore}</span>
                   </div>
                   <p className="zone-coordinates">
                     GPS {recommendations[0].lat.toFixed(3)},{" "}
@@ -596,7 +647,8 @@ export default function Home() {
                     <div>
                       <strong>{zone.name}</strong>
                       <small>
-                        {zone.target} · 약 {Math.round(zone.distance)}km
+                        {zone.target} · 출발지에서 약 {Math.round(zone.distance)}
+                        km
                       </small>
                     </div>
                     <dl>
@@ -631,8 +683,9 @@ export default function Home() {
           )}
         </div>
         <p className="safety-note">
-          ※ 현재는 예시 관측값을 사용한 후보지 안내입니다. 출항 전 반드시
-          기상특보, 항행경보, 현지 조업 규정과 선박 안전 상태를 직접 확인하세요.
+          ※ 이동거리 40%, 파고·풍속 안전성 40%, 수온 적합도 20%를 주소 입력
+          때마다 새로 계산합니다. 현재는 예시 관측값을 사용하므로 출항 전
+          기상특보와 현지 해상 상태를 반드시 직접 확인하세요.
         </p>
       </section>
 
