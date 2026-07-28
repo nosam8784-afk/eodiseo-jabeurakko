@@ -1,98 +1,37 @@
-# vinext-starter
+# 어디서 잡으라꼬
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+어민의 출발 주소를 기준으로 실제 해상 조업 후보 3곳을 추천하는 기상·해양 웹사이트입니다.
 
-## Prerequisites
+## 주요 기능
 
-- Node.js `>=22.13.0`
+- 한글 주소를 실제 좌표로 변환
+- 육지를 제외한 전국 연안·외해 후보 비교
+- 예상 어종과 어획 기대도 표시
+- 실시간 파고, 파주기, 파향, 풍랑, 너울, 수온, 해류 정보
+- 앞으로 6시간의 파고·풍속·강수·시야 변화에 따른 안전 경보
+- 출발지와 추천 해역을 실제 지도에 표시
+- 서울 기준 실시간 시각과 부산 사투리 UI
 
-## Quick Start
+## 사용한 무료 데이터
+
+- 기상청 API허브 인증키 연동 준비
+- Open-Meteo 기상·해양 예측
+- MET Norway 기상 대체 자료
+- OpenStreetMap 주소 검색과 지도
+
+## 내일 이어서 작업하는 방법
+
+Codex에서 이 GitHub 저장소를 프로젝트로 열고 원하는 수정 사항을 말하면 됩니다.
+
+개발 환경에서 직접 실행하려면 Node.js 22 이상이 필요합니다.
 
 ```bash
 npm install
 npm run dev
-npm run build
 ```
 
-This starter does not use `wrangler.jsonc`.
+`KMA_AUTH_KEY`는 선택 사항이며 실제 값은 GitHub에 올리지 않습니다. 필요할 때 `.env.example`을 복사해 로컬 `.env`를 만들고 본인의 인증키를 입력하세요.
 
-## Included Shape
+## 안전 안내
 
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-OpenAI workspace sites can read the current user's email from
-`oai-authenticated-user-email`.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
-```
-
-## Optional Dispatch-Owned ChatGPT Sign-In
-
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
-
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
-
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
-
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
-
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+어획 기대도와 안전 등급은 모델 예측을 바탕으로 한 참고 정보입니다. 실제 출항 전에는 기상청 해상특보, 해경 안내, 항해용 해도와 조석표를 반드시 확인해야 합니다.
