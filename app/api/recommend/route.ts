@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     url.searchParams.set("longitude", point.longitude.toFixed(5));
     url.searchParams.set("current", "wave_height,wind_wave_height,sea_surface_temperature");
     url.searchParams.set("timezone", "Asia/Seoul");
-    const response = await fetch(url, { next: { revalidate: 600 } });
+    const response = await fetch(url, { cache: "no-store" });
     if (!response.ok) return null;
     const body = await response.json() as { current?: Record<string, unknown> };
     const current = body.current;
@@ -92,9 +92,46 @@ export async function GET(request: NextRequest) {
   weatherUrl.searchParams.set("current", "temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation");
   weatherUrl.searchParams.set("wind_speed_unit", "ms");
   weatherUrl.searchParams.set("timezone", "Asia/Seoul");
-  const weatherResponse = await fetch(weatherUrl, { next: { revalidate: 600 } });
-  const weatherBody = await weatherResponse.json() as { current?: Record<string, unknown> };
-  const weather = weatherBody.current || {};
+  weatherUrl.searchParams.set("forecast_days", "1");
+  const weatherResponse = await fetch(weatherUrl, { cache: "no-store" });
+  const weatherBody = weatherResponse.ok
+    ? await weatherResponse.json() as { current?: Record<string, unknown> }
+    : {};
+  let weather = weatherBody.current;
+  let weatherSource = "Open-Meteo 실시간 기상·해양";
+
+  // 일부 배포 환경에서 Open-Meteo의 current 블록이 비어 오는 경우가 있어
+  // 동일 좌표의 공공 기상 피드를 즉시 대체값으로 사용합니다.
+  if (!weather || weather.temperature_2m == null || weather.wind_speed_10m == null) {
+    const fallbackUrl = new URL("https://api.met.no/weatherapi/locationforecast/2.0/compact");
+    fallbackUrl.searchParams.set("lat", lat.toFixed(4));
+    fallbackUrl.searchParams.set("lon", lon.toFixed(4));
+    const fallbackResponse = await fetch(fallbackUrl, {
+      cache: "no-store",
+      headers: { "User-Agent": "eodiseo-jabeurakko/1.0 fishing-weather-service" },
+    });
+    if (!fallbackResponse.ok) {
+      return NextResponse.json({ error: "실시간 기상정보 제공처가 잠시 응답하지 않습니다. 잠시 후 다시 계산해 주세요." }, { status: 503 });
+    }
+    const fallback = await fallbackResponse.json() as {
+      properties?: { timeseries?: Array<{
+        data?: {
+          instant?: { details?: Record<string, unknown> };
+          next_1_hours?: { details?: Record<string, unknown> };
+        };
+      }> };
+    };
+    const first = fallback.properties?.timeseries?.[0]?.data;
+    const details = first?.instant?.details || {};
+    const nextHour = first?.next_1_hours?.details || {};
+    weather = {
+      temperature_2m: details.air_temperature,
+      relative_humidity_2m: details.relative_humidity,
+      wind_speed_10m: details.wind_speed,
+      precipitation: nextHour.precipitation_amount,
+    };
+    weatherSource = "MET Norway 실시간 기상 · Open-Meteo 실시간 해양";
+  }
 
   const placeBase = geo[0].display_name.split(",").slice(0, 2).join(" ");
   const recommendations = unique.map((item, index) => ({
@@ -121,6 +158,6 @@ export async function GET(request: NextRequest) {
       rain: safeNumber(weather.precipitation),
     },
     recommendations,
-    sources: ["기상청 API허브 인증 연동 준비", "Open-Meteo 실시간 기상·해양", "OpenStreetMap 주소·지도"],
+    sources: ["기상청 API허브 인증 연동 준비", weatherSource, "OpenStreetMap 주소·지도"],
   });
 }
