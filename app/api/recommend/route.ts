@@ -85,21 +85,30 @@ export async function GET(request: NextRequest) {
     url.searchParams.set("latitude", point.latitude.toFixed(5));
     url.searchParams.set("longitude", point.longitude.toFixed(5));
     url.searchParams.set("current", "wave_height,wind_wave_height,sea_surface_temperature");
+    url.searchParams.set("hourly", "wave_height,wind_wave_height");
+    url.searchParams.set("forecast_hours", "6");
     url.searchParams.set("timezone", "Asia/Seoul");
     const response = await fetch(url, { cache: "no-store" });
     if (!response.ok) return null;
-    const body = await response.json() as { current?: Record<string, unknown> };
+    const body = await response.json() as {
+      current?: Record<string, unknown>;
+      hourly?: { wave_height?: unknown[]; wind_wave_height?: unknown[] };
+    };
     const current = body.current;
     if (!current || current.wave_height == null || current.sea_surface_temperature == null) return null;
     const wave = safeNumber(current.wave_height, 9);
     const windWave = safeNumber(current.wind_wave_height, wave);
     const seaTemp = safeNumber(current.sea_surface_temperature, 15);
+    const hourlyWaves = (body.hourly?.wave_height || []).map((value) => safeNumber(value)).filter((value) => value >= 0);
+    const hourlyWindWaves = (body.hourly?.wind_wave_height || []).map((value) => safeNumber(value)).filter((value) => value >= 0);
+    const maxWaveNext6 = Math.max(wave, ...hourlyWaves);
+    const maxWindWaveNext6 = Math.max(windWave, ...hourlyWindWaves);
     const safety = Math.max(0, 100 - wave * 30 - windWave * 12);
     const travel = Math.max(0, 100 - point.distance * 1.2);
     const idealCenter = (point.idealTemp[0] + point.idealTemp[1]) / 2;
     const tempSuitability = Math.max(0, 100 - Math.abs(seaTemp - idealCenter) * 9);
     const catchIndex = Math.round(Math.max(1, Math.min(99, tempSuitability * 0.5 + safety * 0.25 + travel * 0.25)));
-    return { ...point, wave, windWave, seaTemp, score: catchIndex, catchIndex };
+    return { ...point, wave, windWave, seaTemp, maxWaveNext6, maxWindWaveNext6, score: catchIndex, catchIndex };
   }));
 
   const valid = marineResults.filter((item): item is NonNullable<typeof item> => Boolean(item));
@@ -113,15 +122,23 @@ export async function GET(request: NextRequest) {
   weatherUrl.searchParams.set("latitude", String(lat));
   weatherUrl.searchParams.set("longitude", String(lon));
   weatherUrl.searchParams.set("current", "temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation");
+  weatherUrl.searchParams.set("hourly", "wind_speed_10m,precipitation,visibility");
+  weatherUrl.searchParams.set("forecast_hours", "6");
   weatherUrl.searchParams.set("wind_speed_unit", "ms");
   weatherUrl.searchParams.set("timezone", "Asia/Seoul");
   weatherUrl.searchParams.set("forecast_days", "1");
   const weatherResponse = await fetch(weatherUrl, { cache: "no-store" });
   const weatherBody = weatherResponse.ok
-    ? await weatherResponse.json() as { current?: Record<string, unknown> }
+    ? await weatherResponse.json() as {
+      current?: Record<string, unknown>;
+      hourly?: { wind_speed_10m?: unknown[]; precipitation?: unknown[]; visibility?: unknown[] };
+    }
     : {};
   let weather = weatherBody.current;
   let weatherSource = "Open-Meteo 실시간 기상·해양";
+  let hourlyWind = (weatherBody.hourly?.wind_speed_10m || []).map((value) => safeNumber(value));
+  let hourlyRain = (weatherBody.hourly?.precipitation || []).map((value) => safeNumber(value));
+  let hourlyVisibility = (weatherBody.hourly?.visibility || []).map((value) => safeNumber(value));
 
   // 일부 배포 환경에서 Open-Meteo의 current 블록이 비어 오는 경우가 있어
   // 동일 좌표의 공공 기상 피드를 즉시 대체값으로 사용합니다.
@@ -153,6 +170,9 @@ export async function GET(request: NextRequest) {
       wind_speed_10m: details.wind_speed,
       precipitation: nextHour.precipitation_amount,
     };
+    hourlyWind = [safeNumber(details.wind_speed)];
+    hourlyRain = [safeNumber(nextHour.precipitation_amount)];
+    hourlyVisibility = [];
     weatherSource = "MET Norway 실시간 기상 · Open-Meteo 실시간 해양";
   }
 
@@ -164,12 +184,56 @@ export async function GET(request: NextRequest) {
     score: item.score,
     wave: item.wave,
     windWave: item.windWave,
+    maxWaveNext6: item.maxWaveNext6,
     seaTemp: item.seaTemp,
     catchIndex: item.catchIndex,
     catchLevel: item.catchIndex >= 85 ? "매우 높음" : item.catchIndex >= 72 ? "높음" : "보통",
     targetSpecies: item.species.join(" · "),
     reason: `${item.species.join("·")} 수온 적합도와 현재 해상 상태를 반영했습니다`,
   }));
+
+  const currentWind = safeNumber(weather.wind_speed_10m);
+  const currentRain = safeNumber(weather.precipitation);
+  const maxWindNext6 = Math.max(currentWind, ...hourlyWind);
+  const maxRainNext6 = Math.max(currentRain, ...hourlyRain);
+  const minVisibilityNext6 = hourlyVisibility.length ? Math.min(...hourlyVisibility.filter((value) => value > 0)) : null;
+  const maxWaveNext6 = Math.max(...unique.map((item) => item.maxWaveNext6));
+  const currentMaxWave = Math.max(...unique.map((item) => item.wave));
+  const warnings: Array<{ severity: "danger" | "caution" | "safe"; title: string; message: string; action: string }> = [];
+
+  if (maxWaveNext6 >= 2.5) {
+    warnings.push({ severity: "danger", title: "높은 파고 위험", message: `6시간 안에 파고가 최대 ${maxWaveNext6.toFixed(1)}m까지 예상됩니다.`, action: "출항을 미루고 최신 해상특보를 확인하이소." });
+  } else if (maxWaveNext6 >= 1.5) {
+    warnings.push({ severity: "caution", title: "파고 상승 주의", message: `6시간 안에 파고가 최대 ${maxWaveNext6.toFixed(1)}m로 높아질 수 있습니다.`, action: "소형선은 외해 조업을 피하고 구명조끼를 꼭 확인하이소." });
+  } else if (maxWaveNext6 - currentMaxWave >= 0.7) {
+    warnings.push({ severity: "caution", title: "갑작스러운 너울 변화", message: `현재보다 파고가 ${(maxWaveNext6 - currentMaxWave).toFixed(1)}m 이상 높아질 수 있습니다.`, action: "귀항 시간을 앞당기고 수시로 파고를 확인하이소." });
+  }
+
+  if (maxWindNext6 >= 14) {
+    warnings.push({ severity: "danger", title: "강풍 위험", message: `6시간 안에 풍속이 최대 ${maxWindNext6.toFixed(1)}m/s로 예상됩니다.`, action: "조업을 중단하고 안전한 항구에 대기하이소." });
+  } else if (maxWindNext6 >= 9) {
+    warnings.push({ severity: "caution", title: "강한 바람 주의", message: `6시간 안에 풍속이 최대 ${maxWindNext6.toFixed(1)}m/s로 강해질 수 있습니다.`, action: "어구와 갑판 장비를 고정하고 먼바다 진입을 삼가이소." });
+  }
+
+  if (maxRainNext6 >= 10) {
+    warnings.push({ severity: "danger", title: "강한 비 위험", message: `시간당 최대 ${maxRainNext6.toFixed(1)}mm의 비가 예상됩니다.`, action: "시야 저하와 미끄럼 사고에 대비하고 출항을 재검토하이소." });
+  } else if (maxRainNext6 >= 3) {
+    warnings.push({ severity: "caution", title: "강수·시야 주의", message: `시간당 최대 ${maxRainNext6.toFixed(1)}mm의 비가 예상됩니다.`, action: "항해등과 레이더를 확인하고 감속 운항하이소." });
+  }
+
+  if (minVisibilityNext6 !== null && minVisibilityNext6 < 1000) {
+    warnings.push({ severity: "danger", title: "저시정 위험", message: `가시거리가 ${Math.round(minVisibilityNext6)}m까지 낮아질 수 있습니다.`, action: "무리한 출항을 피하고 안전 속도와 항해등을 유지하이소." });
+  } else if (minVisibilityNext6 !== null && minVisibilityNext6 < 3000) {
+    warnings.push({ severity: "caution", title: "시야 저하 주의", message: `가시거리가 약 ${(minVisibilityNext6 / 1000).toFixed(1)}km까지 낮아질 수 있습니다.`, action: "주변 선박을 살피고 감속 운항하이소." });
+  }
+
+  if (!warnings.length) {
+    warnings.push({ severity: "safe", title: "뚜렷한 악조건은 없네예", message: "앞으로 6시간의 파고·바람·강수 변화가 현재 안전 기준 안에 있습니다.", action: "그래도 출항 직전 기상특보와 구명장비를 한 번 더 확인하이소." });
+  }
+
+  const safetyStatus = warnings.some((item) => item.severity === "danger")
+    ? "danger"
+    : warnings.some((item) => item.severity === "caution") ? "caution" : "safe";
 
   return NextResponse.json({
     address: geo[0].display_name,
@@ -181,6 +245,14 @@ export async function GET(request: NextRequest) {
       humidity: safeNumber(weather.relative_humidity_2m),
       wind: safeNumber(weather.wind_speed_10m),
       rain: safeNumber(weather.precipitation),
+    },
+    safety: {
+      status: safetyStatus,
+      label: safetyStatus === "danger" ? "출항 위험" : safetyStatus === "caution" ? "주의 필요" : "현재 안전",
+      horizon: "앞으로 6시간",
+      maxWave: maxWaveNext6,
+      maxWind: maxWindNext6,
+      warnings,
     },
     recommendations,
     sources: ["기상청 API허브 인증 연동 준비", weatherSource, "OpenStreetMap 주소·지도"],

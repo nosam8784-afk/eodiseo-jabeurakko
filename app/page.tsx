@@ -15,6 +15,7 @@ type Recommendation = {
   catchIndex: number;
   catchLevel: string;
   targetSpecies: string;
+  maxWaveNext6: number;
   reason: string;
 };
 
@@ -28,6 +29,19 @@ type Result = {
     humidity: number;
     wind: number;
     rain: number;
+  };
+  safety: {
+    status: "safe" | "caution" | "danger";
+    label: string;
+    horizon: string;
+    maxWave: number;
+    maxWind: number;
+    warnings: Array<{
+      severity: "safe" | "caution" | "danger";
+      title: string;
+      message: string;
+      action: string;
+    }>;
   };
   recommendations: Recommendation[];
   sources: string[];
@@ -121,6 +135,28 @@ export default function Home() {
               <article><span>습도</span><strong>{result.weather.humidity}%</strong></article>
               <article><span>풍속</span><strong>{result.weather.wind.toFixed(1)} <small>m/s</small></strong></article>
               <article><span>강수</span><strong>{result.weather.rain.toFixed(1)} <small>mm</small></strong></article>
+            </div>
+          </section>
+
+          <section className={`safety-center ${result.safety.status}`} aria-live="polite">
+            <div className="safety-head">
+              <div className="safety-signal"><i /><i /><i /></div>
+              <div>
+                <p className="overline">조업 안전 알림 · {result.safety.horizon}</p>
+                <h2>{result.safety.label}</h2>
+              </div>
+              <div className="safety-peaks">
+                <span>예상 최고 파고 <strong>{result.safety.maxWave.toFixed(1)}m</strong></span>
+                <span>예상 최고 풍속 <strong>{result.safety.maxWind.toFixed(1)}m/s</strong></span>
+              </div>
+            </div>
+            <div className="warning-list">
+              {result.safety.warnings.map((warning) => (
+                <article className={warning.severity} key={warning.title}>
+                  <div className="warning-icon">{warning.severity === "danger" ? "!" : warning.severity === "caution" ? "△" : "✓"}</div>
+                  <div><strong>{warning.title}</strong><p>{warning.message}</p><small>{warning.action}</small></div>
+                </article>
+              ))}
             </div>
           </section>
 
