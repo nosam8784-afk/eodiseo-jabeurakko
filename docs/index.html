@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="./styles.css" />
     <link rel="stylesheet" href="./google-map.css?v=2" />
-    <link rel="stylesheet" href="./simple-ui.css?v=5" />
+    <link rel="stylesheet" href="./simple-ui.css?v=6" />
   </head>
   <body>
     <main class="shell">
@@ -74,10 +74,19 @@
             <div id="popular-regions" class="history-list"><p class="history-empty">통계를 불러오는 중입니다.</p></div>
           </div>
         </div>
+        <div class="popular-chart-panel">
+          <div class="popular-chart-heading">
+            <h3>지금 사람들이 가장 많이 찾는 지역</h3>
+            <small>전체 이용자 익명 검색 횟수 기준</small>
+          </div>
+          <div id="popular-chart" class="popular-chart" role="img" aria-label="지역별 검색 횟수 차트">
+            <p class="history-empty">검색 데이터가 쌓이면 차트가 나타납니다.</p>
+          </div>
+        </div>
       </section>
       <footer>자료: OpenStreetMap, Open-Meteo. 추천 결과는 참고용이며, 출항 전 기상청 해상특보·해경 안내·항해용 해도를 반드시 확인하이소.</footer>
     </main>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="./app.js?v=shared-history-1"></script>
+    <script src="./app.js?v=popular-chart-1"></script>
   </body>
 </html>

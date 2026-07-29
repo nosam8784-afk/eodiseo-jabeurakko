@@ -187,12 +187,32 @@ function renderLocalHistory(){
 
 function renderPopularRegions(rows){
   const container=$('popular-regions');
-  if(!container)return;
-  container.innerHTML=rows.length?rows.map(row=>`
+  if(container)container.innerHTML=rows.length?rows.map(row=>`
     <div class="history-item">
       <span>${esc(row.region)}</span>
       <strong>${Number(row.searches)||0}회 · 평균 ${Number(row.averageScore)||0}점</strong>
     </div>`).join(''):'<p class="history-empty">아직 모인 익명 통계가 없어요.</p>';
+  renderPopularChart(rows);
+}
+
+function renderPopularChart(rows){
+  const chart=$('popular-chart');
+  if(!chart)return;
+  if(!rows.length){
+    chart.innerHTML='<p class="history-empty">검색 데이터가 쌓이면 차트가 나타납니다.</p>';
+    chart.setAttribute('aria-label','아직 지역별 검색 데이터가 없습니다.');
+    return;
+  }
+  const maxSearches=Math.max(1,...rows.map(row=>Number(row.searches)||0));
+  chart.innerHTML=rows.map((row,index)=>{
+    const searches=Number(row.searches)||0;
+    const width=Math.max(8,Math.round(searches/maxSearches*100));
+    return `<div class="chart-row">
+      <div class="chart-label"><span><b>${index+1}</b>${esc(row.region)}</span><strong>${searches}회</strong></div>
+      <div class="chart-track" aria-hidden="true"><span style="width:${width}%"></span></div>
+    </div>`;
+  }).join('');
+  chart.setAttribute('aria-label',rows.map((row,index)=>`${index+1}위 ${row.region} ${Number(row.searches)||0}회`).join(', '));
 }
 
 async function loadSharedHistory(){
@@ -205,6 +225,8 @@ async function loadSharedHistory(){
   }catch{
     const container=$('popular-regions');
     if(container)container.innerHTML='<p class="history-empty">공용 통계를 잠시 불러오지 못했어요.</p>';
+    const chart=$('popular-chart');
+    if(chart)chart.innerHTML='<p class="history-empty">차트를 잠시 불러오지 못했어요.</p>';
   }
 }
 
