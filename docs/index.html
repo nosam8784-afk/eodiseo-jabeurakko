@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="./styles.css" />
     <link rel="stylesheet" href="./google-map.css?v=2" />
-    <link rel="stylesheet" href="./simple-ui.css?v=4" />
+    <link rel="stylesheet" href="./simple-ui.css?v=5" />
   </head>
   <body>
     <main class="shell">
@@ -20,7 +20,10 @@
 
       <section class="hero" id="top">
         <p class="eyebrow">LIVE WEATHER · MARINE</p>
-        <h1>오늘은 어디로<br />잡으러 갈까?</h1>
+        <div class="hero-title-row">
+          <h1>오늘은 어디로<br />잡으러 갈까?</h1>
+          <img class="hero-title-fish" src="./assets/cute-fish-web.webp" alt="제목 옆에서 헤엄치는 귀여운 물고기" />
+        </div>
         <p>출발할 주소를 넣어 보이소. 가까운 실제 바다 후보를 비교해서 조업 기대도가 높은 해역 3곳을 골라드릴게예.</p>
         <form id="search-form" class="search">
           <label for="address">출발지 주소</label>

@@ -49,6 +49,34 @@ small {
   font-size: clamp(42px, 6vw, 66px);
 }
 
+.hero-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hero-title-row h1 {
+  flex: 0 1 auto;
+}
+
+.hero-title-fish {
+  width: clamp(160px, 20vw, 220px);
+  height: auto;
+  margin-left: -22px;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 15px rgba(21, 91, 104, .13));
+  animation: fish-float 3.2s ease-in-out infinite;
+}
+
+@keyframes fish-float {
+  0%, 100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+
 .hero > p {
   color: #466d78 !important;
 }
@@ -330,7 +358,8 @@ small {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .marker {
+  .marker,
+  .hero-title-fish {
     animation: none;
   }
 }
@@ -387,6 +416,15 @@ footer {
 
   .hero h1 {
     font-size: 43px;
+  }
+
+  .hero-title-row {
+    gap: 0;
+  }
+
+  .hero-title-fish {
+    width: 104px;
+    margin-left: -12px;
   }
 
   .search button {
