@@ -1,0 +1,184 @@
+:root {
+  --ink: #153b46;
+  --muted: #587986;
+  --aqua: #0e94a6;
+  --lime: #f6b94c;
+  --card: rgba(255, 255, 255, .94);
+}
+
+body {
+  background: linear-gradient(180deg, #dff6f8 0, #f7fbf8 52%, #eef8f7 100%) !important;
+  color: var(--ink) !important;
+}
+
+.shell {
+  max-width: 1060px;
+  padding: 20px 22px 38px;
+}
+
+header {
+  padding: 4px 0 18px;
+  border-bottom: 1px solid rgba(21, 91, 104, .12);
+}
+
+.brand {
+  color: #123f4b !important;
+}
+
+.brand small,
+.eyebrow,
+small {
+  color: var(--muted) !important;
+}
+
+.clock {
+  background: #fff !important;
+  border-color: #c6e1e5 !important;
+  color: #174b57;
+  box-shadow: 0 8px 24px rgba(24, 100, 113, .08);
+}
+
+.hero {
+  max-width: none;
+  padding: 48px 0 26px;
+}
+
+.hero h1 {
+  max-width: 700px;
+  color: #103e4b;
+  font-size: clamp(42px, 6vw, 66px);
+}
+
+.hero > p {
+  color: #466d78 !important;
+}
+
+.search,
+.summary,
+.safety,
+.recommendations,
+.google-map-panel {
+  background: var(--card) !important;
+  border: 1px solid #d6e8e9 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 14px 34px rgba(21, 91, 104, .09);
+}
+
+.search {
+  max-width: 850px;
+  padding: 16px;
+}
+
+.search label {
+  color: #153b46;
+}
+
+.search input {
+  background: #fff !important;
+  border-color: #b9d6da !important;
+  color: #153b46 !important;
+}
+
+.search button {
+  background: #0e94a6 !important;
+  color: #fff !important;
+  min-width: 132px;
+}
+
+.message {
+  padding: 20px 8px;
+  color: #587986;
+}
+
+#result:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.summary {
+  order: 1;
+}
+
+.safety {
+  order: 2;
+  margin-top: 0;
+}
+
+.recommendations {
+  order: 3;
+  margin-top: 0;
+}
+
+.google-map-panel {
+  order: 4;
+  margin-top: 0;
+}
+
+.map-panel {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+}
+
+.metrics article,
+.rec {
+  background: #f4faf9 !important;
+  border: 1px solid #dbeae9;
+  color: #153b46;
+}
+
+.rec:first-child {
+  outline-color: #0e94a6 !important;
+}
+
+.rank,
+.score {
+  color: #0b7f90 !important;
+}
+
+.rec p,
+.safety p {
+  color: #587986 !important;
+}
+
+.google-map-tabs button {
+  background: #eef7f7 !important;
+  border-color: #c4dfe1 !important;
+  color: #24535e !important;
+}
+
+.google-map-tabs button.active {
+  background: #0e94a6 !important;
+  border-color: #0e94a6 !important;
+  color: #fff !important;
+}
+
+#google-map-frame {
+  border: 1px solid #d5e6e7;
+}
+
+footer {
+  color: #6a8790;
+}
+
+@media (max-width: 700px) {
+  .shell {
+    padding: 14px;
+  }
+
+  .hero {
+    padding-top: 34px;
+  }
+
+  .hero h1 {
+    font-size: 43px;
+  }
+
+  .search button {
+    width: 100%;
+  }
+}
