@@ -34,7 +34,62 @@ render=function(x){
   }));
   showGoogleSpot(x.entries[0],0);
   setTimeout(()=>map?.invalidateSize(),0);
+  renderNationwideRecommendations();
 };
+
+let nationwidePromise;
+
+async function getNationwideTop(){
+  if(nationwidePromise) return nationwidePromise;
+  nationwidePromise=Promise.all(grounds.map(async g=>{
+    try{
+      const url=`https://marine-api.open-meteo.com/v1/marine?latitude=${g[1]}&longitude=${g[2]}&current=wave_height,wave_period,wind_wave_height,sea_surface_temperature&timezone=Asia%2FSeoul&cell_selection=sea`;
+      const marine=await getJson(url);
+      const current=marine.current||{};
+      const wave=num(current.wave_height,9);
+      const windWave=num(current.wind_wave_height,wave);
+      const temp=num(current.sea_surface_temperature,15);
+      const center=(g[4][0]+g[4][1])/2;
+      const tempScore=Math.max(0,100-Math.abs(temp-center)*9);
+      const safeScore=Math.max(0,100-wave*30-windWave*12);
+      const score=Math.round(Math.max(1,Math.min(99,tempScore*.65+safeScore*.35)));
+      return {
+        name:g[0],
+        species:g[3],
+        wave,
+        temp,
+        period:num(current.wave_period),
+        score
+      };
+    }catch{
+      return null;
+    }
+  })).then(rows=>rows.filter(Boolean).sort((a,b)=>b.score-a.score).slice(0,4));
+  return nationwidePromise;
+}
+
+async function renderNationwideRecommendations(){
+  const cards=$('nationwide-cards');
+  const updated=$('nationwide-updated');
+  if(!cards||!updated) return;
+  cards.innerHTML='<p class="nationwide-loading">전국 바다 상태를 비교하고 있습니더…</p>';
+  try{
+    const spots=await getNationwideTop();
+    if(!spots.length) throw new Error('no nationwide data');
+    cards.innerHTML=spots.map((spot,index)=>`
+      <article class="nationwide-card">
+        <span class="nationwide-rank">전국 ${index+1}위</span>
+        <h3>${esc(spot.name)}</h3>
+        <div class="nationwide-score">${spot.score}<small> / 100</small></div>
+        <p>예상 어종 ${spot.species.map(esc).join(' · ')}<br>파고 ${spot.wave.toFixed(1)}m · 수온 ${spot.temp.toFixed(1)}°C</p>
+      </article>
+    `).join('');
+    updated.textContent='실시간 해양자료 기준 · 출발 거리 제외';
+  }catch{
+    cards.innerHTML='<p class="nationwide-loading">전국 참고 순위를 불러오지 못했습니다. 잠시 뒤 다시 검색해 보이소.</p>';
+    updated.textContent='자료 연결 확인 필요';
+  }
+}
 
 const fishEmoji=name=>{
   if(/문어/.test(name)) return '🐙';
