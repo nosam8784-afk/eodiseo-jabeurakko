@@ -177,7 +177,7 @@ function localHistory(){
 function renderLocalHistory(){
   const container=$('my-history');
   if(!container)return;
-  const rows=localHistory();
+  const rows=localHistory().slice(0,3);
   container.innerHTML=rows.length?rows.map(row=>`
     <div class="history-item">
       <span>${esc(row.address)}<br><small>${esc(row.topSpot)}</small></span>
@@ -186,6 +186,7 @@ function renderLocalHistory(){
 }
 
 function renderPopularRegions(rows){
+  rows=rows.slice(0,3);
   const container=$('popular-regions');
   if(container)container.innerHTML=rows.length?rows.map(row=>`
     <div class="history-item">
