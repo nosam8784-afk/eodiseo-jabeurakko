@@ -1,0 +1,130 @@
+{
+  "source": "인어교주해적단",
+  "sourceUrl": "https://tpirates.com/시세",
+  "market": "부산 주요 시장 우선, 미등록 시 전국 공개 소매시세",
+  "updatedAt": "2026-07-29T02:32:27.574Z",
+  "items": {
+    "갈치": {
+      "display": "약 25,000~80,000원/마리",
+      "min": 25000,
+      "max": 80000,
+      "unit": "마리",
+      "priceDate": "2026-07-29",
+      "listedName": "은갈치",
+      "note": "대표 갈치류",
+      "scope": "전국 공개 시세"
+    },
+    "고등어": {
+      "display": "약 3,340~58,000원/마리",
+      "min": 3340,
+      "max": 58000,
+      "unit": "마리",
+      "priceDate": "2026-07-29",
+      "listedName": "고등어",
+      "note": null,
+      "scope": "전국 공개 시세"
+    },
+    "전갱이": {
+      "display": "약 75,000원/kg",
+      "min": 75000,
+      "max": 75000,
+      "unit": "kg",
+      "priceDate": "2026-07-29",
+      "listedName": "줄무늬전갱이",
+      "note": "유사 어종",
+      "scope": "부산 주요 수산시장"
+    },
+    "가자미": {
+      "display": "약 30,000~60,000원/kg",
+      "min": 30000,
+      "max": 60000,
+      "unit": "kg",
+      "priceDate": "2026-07-29",
+      "listedName": "참가자미",
+      "note": "대표 가자미류",
+      "scope": "전국 공개 시세"
+    },
+    "오징어": {
+      "display": "약 20,000~25,000원/마리",
+      "min": 20000,
+      "max": 25000,
+      "unit": "마리",
+      "priceDate": "2026-07-29",
+      "listedName": "오징어",
+      "note": null,
+      "scope": "부산 주요 수산시장"
+    },
+    "대구": null,
+    "청어": {
+      "display": "약 5,000원/마리",
+      "min": 5000,
+      "max": 5000,
+      "unit": "마리",
+      "priceDate": "2026-07-29",
+      "listedName": "청어",
+      "note": null,
+      "scope": "전국 공개 시세"
+    },
+    "대게": {
+      "display": "약 45,000~75,000원/kg",
+      "min": 45000,
+      "max": 75000,
+      "unit": "kg",
+      "priceDate": "2026-07-29",
+      "listedName": "대게",
+      "note": null,
+      "scope": "부산 주요 수산시장"
+    },
+    "참돔": {
+      "display": "약 30,000~40,000원/kg",
+      "min": 30000,
+      "max": 40000,
+      "unit": "kg",
+      "priceDate": "2026-07-29",
+      "listedName": "참돔",
+      "note": null,
+      "scope": "부산 주요 수산시장"
+    },
+    "부시리": {
+      "display": "약 20,000원/마리",
+      "min": 20000,
+      "max": 20000,
+      "unit": "마리",
+      "priceDate": "2026-07-29",
+      "listedName": "부시리",
+      "note": null,
+      "scope": "전국 공개 시세"
+    },
+    "방어": {
+      "display": "약 30,000~70,000원/kg",
+      "min": 30000,
+      "max": 70000,
+      "unit": "kg",
+      "priceDate": "2026-07-29",
+      "listedName": "방어",
+      "note": null,
+      "scope": "전국 공개 시세"
+    },
+    "우럭": {
+      "display": "약 30,000~35,000원/kg",
+      "min": 30000,
+      "max": 35000,
+      "unit": "kg",
+      "priceDate": "2026-07-29",
+      "listedName": "우럭",
+      "note": null,
+      "scope": "부산 주요 수산시장"
+    },
+    "광어": {
+      "display": "약 30,000~50,000원/kg",
+      "min": 30000,
+      "max": 50000,
+      "unit": "kg",
+      "priceDate": "2026-07-29",
+      "listedName": "광어",
+      "note": null,
+      "scope": "부산 주요 수산시장"
+    },
+    "황금바리": null
+  }
+}
