@@ -57,7 +57,8 @@ small {
 .summary,
 .safety,
 .recommendations,
-.google-map-panel {
+.google-map-panel,
+.nationwide {
   background: var(--card) !important;
   border: 1px solid #d6e8e9 !important;
   border-radius: 16px !important;
@@ -113,6 +114,91 @@ small {
 .google-map-panel {
   order: 5;
   margin-top: 0;
+}
+
+.nationwide {
+  order: 6;
+  margin-top: 0;
+  padding: 22px;
+}
+
+.nationwide-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.nationwide-heading h2 {
+  margin: 6px 0 0;
+  color: #153b46;
+}
+
+.nationwide-note {
+  margin: 10px 0 18px;
+  color: #587986;
+  font-size: 13px;
+}
+
+.nationwide-cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.nationwide-card {
+  position: relative;
+  min-height: 176px;
+  padding: 15px;
+  overflow: hidden;
+  border: 1px solid #dbeae9;
+  border-radius: 14px;
+  background: #f4faf9;
+}
+
+.nationwide-card:first-child {
+  border-color: #0e94a6;
+  box-shadow: inset 0 0 0 1px #0e94a6;
+}
+
+.nationwide-rank {
+  color: #0b7f90;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.nationwide-card h3 {
+  min-height: 42px;
+  margin: 8px 0;
+  color: #153b46;
+  font-size: 16px;
+}
+
+.nationwide-score {
+  color: #0b7f90;
+  font-size: 27px;
+  font-weight: 900;
+}
+
+.nationwide-score small {
+  font-size: 11px;
+}
+
+.nationwide-card p {
+  margin: 8px 0 0;
+  color: #587986;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.nationwide-loading {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 18px;
+  border-radius: 12px;
+  background: #f4faf9;
+  color: #587986;
+  text-align: center;
 }
 
 .map-panel {
@@ -305,5 +391,18 @@ footer {
 
   .search button {
     width: 100%;
+  }
+
+  .nationwide-heading {
+    display: block;
+  }
+
+  .nationwide-heading > small {
+    display: block;
+    margin-top: 7px;
+  }
+
+  .nationwide-cards {
+    grid-template-columns: 1fr 1fr;
   }
 }
