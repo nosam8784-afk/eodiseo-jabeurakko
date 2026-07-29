@@ -397,6 +397,10 @@ small {
   color: #fff !important;
 }
 
+.google-map-help {
+  color: #587986 !important;
+}
+
 #google-map-frame {
   border: 1px solid #d5e6e7;
 }

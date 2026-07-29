@@ -19,12 +19,15 @@
 }
 
 .google-map-tabs button {
+  display: inline-flex;
+  align-items: center;
   border: 1px solid #39728a;
   border-radius: 10px;
   padding: 10px 13px;
   background: #062b40;
   color: #eaf7fb;
   font-weight: 800;
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -32,6 +35,44 @@
   border-color: #dff36d;
   background: #dff36d;
   color: #142b30;
+}
+
+.google-map-help {
+  margin: -6px 0 14px;
+  color: #a9c8d3;
+  font-size: 13px;
+}
+
+.google-map-embed-wrap {
+  position: relative;
+}
+
+.google-map-open {
+  position: absolute;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 14px;
+  border-radius: 14px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.google-map-open span {
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: rgba(6, 43, 64, .9);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, .22);
+}
+
+.google-map-open:focus-visible {
+  outline: 3px solid #dff36d;
+  outline-offset: 3px;
 }
 
 #google-map-frame {

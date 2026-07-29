@@ -22,8 +22,12 @@ render=function(x){
   persistSearch(x);
   const frame=$('google-map-frame');
   const tabs=$('google-map-tabs');
+  const openMap=$('google-map-open');
   const showGoogleSpot=(spot,index)=>{
     frame.src=`https://maps.google.com/maps?q=${spot.lat},${spot.lon}&z=11&output=embed`;
+    openMap.href=`https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}`;
+    openMap.setAttribute('aria-label',`${spot.name}을 구글 지도 사이트에서 새 탭으로 열기`);
+    openMap.title=`${spot.name} 구글 지도에서 열기`;
     [...tabs.children].forEach((button,i)=>button.classList.toggle('active',i===index));
   };
   tabs.replaceChildren(...x.entries.map((spot,index)=>{
