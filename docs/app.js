@@ -19,6 +19,7 @@ $('search-form').addEventListener('submit',calculate);
 const renderWithGoogleLinks=render;
 render=function(x){
   renderWithGoogleLinks(x);
+  persistSearch(x);
   const frame=$('google-map-frame');
   const tabs=$('google-map-tabs');
   const showGoogleSpot=(spot,index)=>{
@@ -155,3 +156,98 @@ drawMap=function(x){
   });
   map.fitBounds(pts,{padding:[45,45],maxZoom:10});
 };
+
+const HISTORY_API='https://script.google.com/macros/s/AKfycbyBR2GhL2uuWqrEtpGaVi25KIggWFw5heICxi4OwqktqlN8Sl77M4VQqNC5tHUcEEJdIQ/exec';
+const CLIENT_ID_KEY='eodiseo-client-id';
+const LOCAL_HISTORY_KEY='eodiseo-local-history';
+
+function historyClientId(){
+  let id=localStorage.getItem(CLIENT_ID_KEY);
+  if(!id){
+    id=crypto.randomUUID();
+    localStorage.setItem(CLIENT_ID_KEY,id);
+  }
+  return id;
+}
+
+function localHistory(){
+  try{return JSON.parse(localStorage.getItem(LOCAL_HISTORY_KEY)||'[]')}catch{return []}
+}
+
+function renderLocalHistory(){
+  const container=$('my-history');
+  if(!container)return;
+  const rows=localHistory();
+  container.innerHTML=rows.length?rows.map(row=>`
+    <div class="history-item">
+      <span>${esc(row.address)}<br><small>${esc(row.topSpot)}</small></span>
+      <strong>${Number(row.score)||0}점</strong>
+    </div>`).join(''):'<p class="history-empty">아직 저장된 검색이 없어요.</p>';
+}
+
+function renderPopularRegions(rows){
+  const container=$('popular-regions');
+  if(!container)return;
+  container.innerHTML=rows.length?rows.map(row=>`
+    <div class="history-item">
+      <span>${esc(row.region)}</span>
+      <strong>${Number(row.searches)||0}회 · 평균 ${Number(row.averageScore)||0}점</strong>
+    </div>`).join(''):'<p class="history-empty">아직 모인 익명 통계가 없어요.</p>';
+}
+
+async function loadSharedHistory(){
+  renderLocalHistory();
+  try{
+    const response=await fetch(`${HISTORY_API}?clientId=${encodeURIComponent(historyClientId())}`,{cache:'no-store'});
+    if(!response.ok)throw new Error('history unavailable');
+    const data=await response.json();
+    renderPopularRegions(Array.isArray(data.popular)?data.popular:[]);
+  }catch{
+    const container=$('popular-regions');
+    if(container)container.innerHTML='<p class="history-empty">공용 통계를 잠시 불러오지 못했어요.</p>';
+  }
+}
+
+async function persistSearch(result){
+  const exactAddress=$('address')?.value.trim()||result.name;
+  const top=result.entries?.[0];
+  if(!top)return;
+  const rows=localHistory();
+  rows.unshift({address:exactAddress,topSpot:top.name,score:top.score,searchedAt:Date.now()});
+  localStorage.setItem(LOCAL_HISTORY_KEY,JSON.stringify(rows.slice(0,8)));
+  renderLocalHistory();
+  try{
+    await fetch(HISTORY_API,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({
+        clientId:historyClientId(),
+        resolvedAddress:result.name,
+        latitude:result.lat,
+        longitude:result.lon,
+        topSpot:top.name,
+        score:top.score
+      })
+    });
+    await loadSharedHistory();
+  }catch{
+    // Exact history still remains on this device if the shared service is temporarily unavailable.
+  }
+}
+
+$('clear-history')?.addEventListener('click',async()=>{
+  localStorage.removeItem(LOCAL_HISTORY_KEY);
+  renderLocalHistory();
+  try{
+    await fetch(HISTORY_API,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({clientId:historyClientId(),action:'delete'})
+    });
+    await loadSharedHistory();
+  }catch{
+    // Local deletion is immediate; server deletion can be retried on the next visit.
+  }
+});
+
+loadSharedHistory();
