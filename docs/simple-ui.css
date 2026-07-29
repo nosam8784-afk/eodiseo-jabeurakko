@@ -166,9 +166,29 @@ small {
   color: #153b46;
 }
 
+.fish-chip > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fish-chip em {
+  color: #087f91;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .fish-picture {
   font-size: 22px;
   line-height: 1;
+}
+
+.fish-source {
+  margin-top: 8px;
+  color: #6b8790 !important;
+  font-size: 10px !important;
 }
 
 .fish-popup p {
