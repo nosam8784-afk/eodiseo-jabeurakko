@@ -68,10 +68,13 @@ drawMap=function(x){
       fillColor:color,
       fillOpacity:.16
     }).addTo(map);
+    const markerLabel=`${i+1}위 ${z.name} 예상 어종 보기`;
     L.marker([z.lat,z.lon],{
+      title:markerLabel,
+      alt:markerLabel,
       icon:L.divIcon({
         className:'',
-        html:`<button class="marker" aria-label="${i+1}위 ${esc(z.name)} 예상 어종 보기">${i+1}</button>`,
+        html:`<span class="marker" aria-hidden="true">${i+1}</span>`,
         iconSize:[36,36],
         iconAnchor:[18,18]
       })
