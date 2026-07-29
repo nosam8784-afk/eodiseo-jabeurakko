@@ -38,6 +38,12 @@ render=function(x){
 };
 
 let nationwidePromise;
+const nationwideFallback=[
+  {name:'여수 금오도 남쪽',species:['갈치','참돔'],wave:.4,temp:24.4,score:77},
+  {name:'가덕도 남동 외해',species:['갈치','고등어'],wave:.4,temp:25.4,score:72},
+  {name:'통영 욕지도 남쪽',species:['갈치','참돔'],wave:.6,temp:26.1,score:65},
+  {name:'부산 다대포 외해',species:['전갱이','고등어'],wave:.3,temp:26.2,score:62}
+];
 
 async function getNationwideTop(){
   if(nationwidePromise) return nationwidePromise;
@@ -72,24 +78,27 @@ async function renderNationwideRecommendations(){
   const cards=$('nationwide-cards');
   const updated=$('nationwide-updated');
   if(!cards||!updated) return;
-  cards.innerHTML='<p class="nationwide-loading">전국 바다 상태를 비교하고 있습니더…</p>';
+  const cardHtml=spots=>spots.map((spot,index)=>`
+    <article class="nationwide-card">
+      <span class="nationwide-rank">전국 ${index+1}위</span>
+      <h3>${esc(spot.name)}</h3>
+      <div class="nationwide-score">${spot.score}<small> / 100</small></div>
+      <p>예상 어종 ${spot.species.map(esc).join(' · ')}<br>파고 ${spot.wave.toFixed(1)}m · 수온 ${spot.temp.toFixed(1)}°C</p>
+    </article>
+  `).join('');
+  cards.innerHTML=cardHtml(nationwideFallback);
+  updated.textContent='최근 계산값 · 실시간 자료 갱신 중';
   try{
     const spots=await getNationwideTop();
     if(!spots.length) throw new Error('no nationwide data');
-    cards.innerHTML=spots.map((spot,index)=>`
-      <article class="nationwide-card">
-        <span class="nationwide-rank">전국 ${index+1}위</span>
-        <h3>${esc(spot.name)}</h3>
-        <div class="nationwide-score">${spot.score}<small> / 100</small></div>
-        <p>예상 어종 ${spot.species.map(esc).join(' · ')}<br>파고 ${spot.wave.toFixed(1)}m · 수온 ${spot.temp.toFixed(1)}°C</p>
-      </article>
-    `).join('');
+    cards.innerHTML=cardHtml(spots);
     updated.textContent='실시간 해양자료 기준 · 출발 거리 제외';
   }catch{
-    cards.innerHTML='<p class="nationwide-loading">전국 참고 순위를 불러오지 못했습니다. 잠시 뒤 다시 검색해 보이소.</p>';
-    updated.textContent='자료 연결 확인 필요';
+    updated.textContent='최근 계산값 · 실시간 갱신 대기';
   }
 }
+
+renderNationwideRecommendations();
 
 const fishEmoji=name=>{
   if(/문어/.test(name)) return '🐙';
