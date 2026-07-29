@@ -43,18 +43,18 @@
           <iframe id="google-map-frame" title="추천 해역 구글 지도" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
         </section>
         <section class="recommendations"><div><p class="eyebrow">추천 해역 3곳</p><h2>고기 만날 만한 데만 골랐심더</h2></div><div id="cards"></div></section>
-        <section class="nationwide">
-          <div class="nationwide-heading">
-            <div><p class="eyebrow">전국 참고 추천</p><h2>지금 전국에서 점수 높은 바다 4곳</h2></div>
-            <small id="nationwide-updated">실시간 해양자료 계산 중…</small>
-          </div>
-          <p class="nationwide-note">출발지까지의 거리는 제외하고 수온·파고·안전도를 비교한 참고 순위입니다.</p>
-          <div id="nationwide-cards" class="nationwide-cards" aria-live="polite"></div>
-        </section>
+      </section>
+      <section class="nationwide">
+        <div class="nationwide-heading">
+          <div><p class="eyebrow">전국 참고 추천</p><h2>지금 전국에서 점수 높은 바다 4곳</h2></div>
+          <small id="nationwide-updated">최근 계산값 표시 중…</small>
+        </div>
+        <p class="nationwide-note">출발지까지의 거리는 제외하고 수온·파고·안전도를 비교한 참고 순위입니다. 지도에는 별도로 표시하지 않습니다.</p>
+        <div id="nationwide-cards" class="nationwide-cards" aria-live="polite"></div>
       </section>
       <footer>자료: OpenStreetMap, Open-Meteo. 추천 결과는 참고용이며, 출항 전 기상청 해상특보·해경 안내·항해용 해도를 반드시 확인하이소.</footer>
     </main>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="./app.js?v=nationwide-top-1"></script>
+    <script src="./app.js?v=nationwide-top-fixed-2"></script>
   </body>
 </html>
