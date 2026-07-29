@@ -7,6 +7,62 @@
     <title>어디서 잡으라꼬 | 바다 조업 길잡이</title>
     <link rel="preconnect" href="https://unpkg.com" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="./styles.css?v=market-sign-20260729" />
+  </head>
+  <body>
+    <main class="shell">
+      <div class="market-ticker" aria-label="오늘의 조업 안내"><span>●</span> 오늘의 바다 장터 · 출항 전 해상특보와 파고를 꼭 확인하이소 <b>OPEN 24H</b></div>
+      <header>
+        <a class="brand" href="#top"><span class="brand-mark">⚓</span><span>어디서 잡으라꼬<small>BUSAN FISHING MARKET · 바다 조업 길잡이</small></span></a>
+        <div class="clock"><span>서울 현재 시각</span><strong id="clock">불러오는 중</strong></div>
+      </header>
+
+      <section class="hero" id="top">
+        <div class="hero-grid">
+          <div>
+            <p class="eyebrow">새벽 바다 경매판 · LIVE WEATHER</p>
+            <h1>오늘 고기<br /><em>어디서 잡으라꼬?</em></h1>
+            <p>출발할 주소를 넣어 보이소. 가까운 실제 바다 후보를 비교해서 조업 기대도가 높은 해역 3곳을 골라드릴게예.</p>
+          </div>
+          <aside class="catch-board" aria-label="오늘의 추천 기준">
+            <div class="board-top market-sign"><span>오늘의 경매표</span><b>FRESH</b></div>
+            <strong>조업 추천 해역</strong>
+            <ul><li><span>🐟</span>수온 적합도</li><li><span>〰</span>파고 · 너울</li><li><span>➜</span>출발지 거리</li></ul>
+            <small>실시간 해양 자료 반영</small>
+          </aside>
+        </div>
+        <form id="search-form" class="search">
+          <label for="address">출발지 주소</label>
+          <div><input id="address" value="부산광역시 해운대구" placeholder="예: 울산광역시 동구 방어진순환도로" /><button id="submit" type="submit">어디가 좋노?</button></div>
+          <small>예시: 부산 해운대구 · 울산 동구 · 포항 북구 · 여수시</small>
+        </form>
+      </section>
+
+      <section id="message" class="message">주소를 입력하면 실시간 기상·해양 자료로 계산합니다.</section>
+      <section id="result" hidden>
+        <section class="summary">
+          <div><p class="eyebrow">출발지 기준 계산 결과</p><h2 id="place">-</h2><small id="coords">-</small></div>
+          <div class="metrics" id="weather"></div>
+        </section>
+        <section class="safety" id="safety"></section>
+        <section class="map-panel"><div class="map-title"><span>⚓</span><p><b>바다 길잡이 지도</b><small>출발지에서 추천 해역까지 한눈에 보이소</small></p></div><div id="map"></div></section>
+        <section class="recommendations"><div><p class="eyebrow">추천 해역 3곳</p><h2>고기 만날 만한 데만 골랐심더</h2></div><div id="cards"></div></section>
+      </section>
+      <footer>자료: OpenStreetMap, Open-Meteo. 추천 결과는 참고용이며, 출항 전 기상청 해상특보·해경 안내·항해용 해도를 반드시 확인하이소.</footer>
+    </main>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="어민을 위한 주소 기반 기상·해양·조업 추천 서비스" />
+    <title>어디서 잡으라꼬 | 바다 조업 길잡이</title>
+    <link rel="preconnect" href="https://unpkg.com" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="./styles.css?v=bright-ocean-20260729" />
   </head>
   <body>
