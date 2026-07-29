@@ -34,3 +34,49 @@ render=function(x){
   showGoogleSpot(x.entries[0],0);
   setTimeout(()=>map?.invalidateSize(),0);
 };
+
+const fishEmoji=name=>{
+  if(/문어/.test(name)) return '🐙';
+  if(/오징어|한치/.test(name)) return '🦑';
+  if(/새우/.test(name)) return '🦐';
+  if(/게/.test(name)) return '🦀';
+  if(/복어/.test(name)) return '🐡';
+  if(/참돔|돌돔|감성돔/.test(name)) return '🐠';
+  return '🐟';
+};
+
+drawMap=function(x){
+  if(map) map.remove();
+  map=L.map('map',{scrollWheelZoom:false});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap'
+  }).addTo(map);
+  const pts=[[x.lat,x.lon]];
+  L.marker([x.lat,x.lon]).addTo(map).bindPopup('<b>출발지</b><br>'+esc(x.name));
+  x.entries.forEach((z,i)=>{
+    const color=i===0?'#0e94a6':i===1?'#f6b94c':'#587986';
+    const fish=z.species.map(name=>`<span class="fish-chip"><span class="fish-picture">${fishEmoji(name)}</span><b>${esc(name)}</b></span>`).join('');
+    const popup=`<div class="fish-popup"><strong>${i+1}위 ${esc(z.name)}</strong><small>예상 어종</small><div class="fish-list">${fish}</div><p>조업 기대도 ${z.score}/100 · 파고 ${z.wave.toFixed(1)}m</p></div>`;
+    L.polyline([[x.lat,x.lon],[z.lat,z.lon]],{
+      color,
+      weight:i===0?3:2,
+      dashArray:i?'7 7':null
+    }).addTo(map);
+    L.circle([z.lat,z.lon],{
+      radius:i?1600:2400,
+      color,
+      fillColor:color,
+      fillOpacity:.16
+    }).addTo(map);
+    L.marker([z.lat,z.lon],{
+      icon:L.divIcon({
+        className:'',
+        html:`<button class="marker" aria-label="${i+1}위 ${esc(z.name)} 예상 어종 보기">${i+1}</button>`,
+        iconSize:[36,36],
+        iconAnchor:[18,18]
+      })
+    }).addTo(map).bindPopup(popup,{maxWidth:260});
+    pts.push([z.lat,z.lon]);
+  });
+  map.fitBounds(pts,{padding:[45,45],maxZoom:10});
+};
