@@ -36,11 +36,16 @@
         </section>
         <section class="safety" id="safety"></section>
         <section class="map-panel"><div id="map"></div></section>
+        <section class="google-map-panel">
+          <div><p class="eyebrow">GOOGLE MAPS</p><h2>추천 해역을 구글 지도에서 바로 확인</h2></div>
+          <div id="google-map-tabs" class="google-map-tabs" aria-label="추천 해역 선택"></div>
+          <iframe id="google-map-frame" title="추천 해역 구글 지도" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+        </section>
         <section class="recommendations"><div><p class="eyebrow">추천 해역 3곳</p><h2>고기 만날 만한 데만 골랐심더</h2></div><div id="cards"></div></section>
       </section>
       <footer>자료: OpenStreetMap, Open-Meteo. 추천 결과는 참고용이며, 출항 전 기상청 해상특보·해경 안내·항해용 해도를 반드시 확인하이소.</footer>
     </main>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="./app.js?v=google-map-1"></script>
+    <script src="./app.js?v=google-map-2"></script>
   </body>
 </html>
