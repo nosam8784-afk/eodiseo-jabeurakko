@@ -54,7 +54,7 @@ drawMap=function(x){
   const pts=[[x.lat,x.lon]];
   L.marker([x.lat,x.lon]).addTo(map).bindPopup('<b>출발지</b><br>'+esc(x.name));
   x.entries.forEach((z,i)=>{
-    const color=i===0?'#0e94a6':i===1?'#f6b94c':'#587986';
+    const color=i===0?'#00a9c0':i===1?'#ff8a34':'#2251a3';
     const fish=z.species.map(name=>`<span class="fish-chip"><span class="fish-picture">${fishEmoji(name)}</span><b>${esc(name)}</b></span>`).join('');
     const popup=`<div class="fish-popup"><strong>${i+1}위 ${esc(z.name)}</strong><small>예상 어종</small><div class="fish-list">${fish}</div><p>조업 기대도 ${z.score}/100 · 파고 ${z.wave.toFixed(1)}m</p></div>`;
     L.polyline([[x.lat,x.lon],[z.lat,z.lon]],{
@@ -63,10 +63,11 @@ drawMap=function(x){
       dashArray:i?'7 7':null
     }).addTo(map);
     L.circle([z.lat,z.lon],{
-      radius:i?1600:2400,
+      radius:i?2100:2900,
       color,
       fillColor:color,
-      fillOpacity:.16
+      fillOpacity:.28,
+      weight:4
     }).addTo(map);
     const markerLabel=`${i+1}위 ${z.name} 예상 어종 보기`;
     L.marker([z.lat,z.lon],{
@@ -74,9 +75,9 @@ drawMap=function(x){
       alt:markerLabel,
       icon:L.divIcon({
         className:'',
-        html:`<span class="marker" aria-hidden="true">${i+1}</span>`,
-        iconSize:[36,36],
-        iconAnchor:[18,18]
+        html:`<span class="marker marker-${i+1}" aria-hidden="true">${i+1}</span>`,
+        iconSize:[48,48],
+        iconAnchor:[24,24]
       })
     }).addTo(map).bindPopup(popup,{maxWidth:260});
     pts.push([z.lat,z.lon]);
