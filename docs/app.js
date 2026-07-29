@@ -18,15 +18,19 @@ $('search-form').addEventListener('submit',calculate);
 const renderWithGoogleLinks=render;
 render=function(x){
   renderWithGoogleLinks(x);
-  [...document.querySelectorAll('#cards .rec')].forEach((card,index)=>{
-    const spot=x.entries[index];
-    const link=document.createElement('a');
-    link.className='google-map-link';
-    link.href=`https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}`;
-    link.target='_blank';
-    link.rel='noopener noreferrer';
-    link.textContent='구글 지도에서 위치 보기';
-    card.appendChild(link);
-  });
+  const frame=$('google-map-frame');
+  const tabs=$('google-map-tabs');
+  const showGoogleSpot=(spot,index)=>{
+    frame.src=`https://maps.google.com/maps?q=${spot.lat},${spot.lon}&z=11&output=embed`;
+    [...tabs.children].forEach((button,i)=>button.classList.toggle('active',i===index));
+  };
+  tabs.replaceChildren(...x.entries.map((spot,index)=>{
+    const button=document.createElement('button');
+    button.type='button';
+    button.textContent=`${index+1}위 ${spot.name}`;
+    button.addEventListener('click',()=>showGoogleSpot(spot,index));
+    return button;
+  }));
+  showGoogleSpot(x.entries[0],0);
   setTimeout(()=>map?.invalidateSize(),0);
 };
