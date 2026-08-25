@@ -2,15 +2,24 @@
   "source": "인어교주해적단",
   "sourceUrl": "https://tpirates.com/시세",
   "market": "부산 주요 시장 우선, 미등록 시 전국 공개 소매시세",
-  "updatedAt": "2026-08-24T03:37:50.982Z",
+  "updatedAt": "2026-08-25T03:27:36.768Z",
   "items": {
-    "갈치": null,
-    "고등어": {
-      "display": "약 4,000~58,000원/마리",
-      "min": 4000,
-      "max": 58000,
+    "갈치": {
+      "display": "약 25,000~80,000원/마리",
+      "min": 25000,
+      "max": 80000,
       "unit": "마리",
-      "priceDate": "2026-08-24",
+      "priceDate": "2026-08-25",
+      "listedName": "은갈치",
+      "note": "대표 갈치류",
+      "scope": "전국 공개 시세"
+    },
+    "고등어": {
+      "display": "약 7,500~25,000원/마리",
+      "min": 7500,
+      "max": 25000,
+      "unit": "마리",
+      "priceDate": "2026-08-25",
       "listedName": "고등어",
       "note": null,
       "scope": "전국 공개 시세"
@@ -20,27 +29,27 @@
       "min": 55000,
       "max": 80000,
       "unit": "kg",
-      "priceDate": "2026-08-24",
+      "priceDate": "2026-08-25",
       "listedName": "줄무늬전갱이",
       "note": "유사 어종",
       "scope": "전국 공개 시세"
     },
     "가자미": {
-      "display": "약 30,000~80,000원/kg",
+      "display": "약 30,000~60,000원/kg",
       "min": 30000,
-      "max": 80000,
+      "max": 60000,
       "unit": "kg",
-      "priceDate": "2026-08-24",
+      "priceDate": "2026-08-25",
       "listedName": "참가자미",
       "note": "대표 가자미류",
       "scope": "전국 공개 시세"
     },
     "오징어": {
-      "display": "약 2,500~30,000원/마리",
+      "display": "약 2,500~35,000원/마리",
       "min": 2500,
-      "max": 30000,
+      "max": 35000,
       "unit": "마리",
-      "priceDate": "2026-08-24",
+      "priceDate": "2026-08-25",
       "listedName": "오징어",
       "note": null,
       "scope": "전국 공개 시세"
@@ -51,17 +60,17 @@
       "min": 20000,
       "max": 20000,
       "unit": "kg",
-      "priceDate": "2026-08-24",
+      "priceDate": "2026-08-25",
       "listedName": "청어",
       "note": null,
       "scope": "전국 공개 시세"
     },
     "대게": {
-      "display": "약 45,000~75,000원/kg",
+      "display": "약 45,000~90,000원/kg",
       "min": 45000,
-      "max": 75000,
+      "max": 90000,
       "unit": "kg",
-      "priceDate": "2026-08-24",
+      "priceDate": "2026-08-25",
       "listedName": "대게",
       "note": null,
       "scope": "부산 주요 수산시장"
@@ -71,7 +80,7 @@
       "min": 30000,
       "max": 35000,
       "unit": "kg",
-      "priceDate": "2026-08-24",
+      "priceDate": "2026-08-25",
       "listedName": "참돔",
       "note": null,
       "scope": "부산 주요 수산시장"
@@ -82,17 +91,17 @@
       "min": 30000,
       "max": 95000,
       "unit": "kg",
-      "priceDate": "2026-08-24",
+      "priceDate": "2026-08-25",
       "listedName": "방어",
       "note": null,
       "scope": "전국 공개 시세"
     },
     "우럭": {
-      "display": "약 30,000원/kg",
+      "display": "약 30,000~35,000원/kg",
       "min": 30000,
-      "max": 30000,
+      "max": 35000,
       "unit": "kg",
-      "priceDate": "2026-08-24",
+      "priceDate": "2026-08-25",
       "listedName": "우럭",
       "note": null,
       "scope": "부산 주요 수산시장"
@@ -102,7 +111,7 @@
       "min": 30000,
       "max": 35000,
       "unit": "kg",
-      "priceDate": "2026-08-24",
+      "priceDate": "2026-08-25",
       "listedName": "광어",
       "note": null,
       "scope": "부산 주요 수산시장"
